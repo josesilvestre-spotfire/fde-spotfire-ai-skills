@@ -1,0 +1,145 @@
+{
+  "specVersion": 1,
+  "tables": [
+    {
+      "name": "PUMP_DATA",
+      "source": {"type": "sbdf", "path": "data/PUMP_DATA.sbdf"},
+      "description": "One row per pump per hour: flow, suction and discharge pressure, motor current and status for every pump in the fleet.",
+      "columns": {
+        "Timestamp": {"description": "Start of the hourly interval (plant local time)", "format": "yyyy-MM-dd HH:mm"},
+        "Station": {"description": "Pump station name"},
+        "Pump ID": {"description": "Pump tag, unique across the fleet"},
+        "Flow Rate (bbl/d)": {"description": "Metered flow through the pump", "format": "#,##0.0"},
+        "Discharge Pressure (psig)": {"description": "Pressure at the pump discharge flange", "format": "#,##0.0"},
+        "Suction Pressure (psig)": {"description": "Pressure at the pump suction flange", "format": "#,##0.0"},
+        "Motor Current (A)": {"description": "Average motor current over the interval", "format": "#,##0.0"},
+        "Status": {"description": "Running, Standby or Tripped", "settings": {"Visible": true}},
+        "Latitude": {"description": "Station latitude (WGS84)", "format": "0.00000"},
+        "Longitude": {"description": "Station longitude (WGS84)", "format": "0.00000"},
+        "Differential Pressure (psi)": {"format": "#,##0.0"},
+        "Hydraulic Power (hp)": {"format": "#,##0"},
+        "Asset Hierarchy": {"description": "Station > Pump ID drill path"}
+      },
+      "calculatedColumns": [
+        {"name": "Differential Pressure (psi)",
+         "expression": "[Discharge Pressure (psig)] - [Suction Pressure (psig)]",
+         "description": "Pressure rise across the pump"},
+        {"name": "Hydraulic Power (hp)",
+         "expression": "[Flow Rate (bbl/d)] * [Differential Pressure (psi)] / 58766.0",
+         "description": "Hydraulic horsepower delivered to the liquid (bbl/d x psi / 58766)"}
+      ],
+      "hierarchies": [{"name": "Asset Hierarchy", "levels": ["Station", "Pump ID"]}],
+      "settings": {"AutoCreateFilters": true},
+      "embed": true
+    },
+    {
+      "name": "PUMP_EVENTS",
+      "source": {
+        "type": "csv",
+        "path": "data/PUMP_EVENTS.csv",
+        "separator": ",",
+        "culture": "en-US",
+        "encoding": "utf-8",
+        "header": true,
+        "columns": {
+          "Event ID": "String",
+          "Pump ID": "String",
+          "Start": "DateTime",
+          "End": "DateTime",
+          "Severity": "String",
+          "Description": "String"
+        }
+      },
+      "description": "One row per pump event (trip, alarm or maintenance) with its start and end time.",
+      "columns": {
+        "Event ID": {"description": "Event identifier"},
+        "Start": {"description": "Event start (plant local time)", "format": "yyyy-MM-dd HH:mm"},
+        "End": {"description": "Event end (plant local time)", "format": "yyyy-MM-dd HH:mm"},
+        "Severity": {"description": "Low, Medium or High"},
+        "Duration (h)": {"format": "#,##0.0"}
+      },
+      "calculatedColumns": [
+        {"name": "Duration (h)",
+         "expression": "DateDiff(\"hour\", [Start], [End])",
+         "description": "Event duration in hours"}
+      ],
+      "embed": true
+    },
+    {
+      "name": "PUMP_EVENT_SUMMARY",
+      "source": {"type": "dataFunction", "function": "Summarize Pump Events", "output": "PUMP_EVENT_SUMMARY"},
+      "description": "Event count and total event hours per pump, recalculated when PUMP_EVENTS changes.",
+      "columns": {
+        "Event Count": {"description": "Number of events recorded for the pump", "format": "#,##0"},
+        "Event Hours (h)": {"description": "Total hours the pump spent in events", "format": "#,##0.0"},
+        "Mean Event Duration (h)": {"format": "#,##0.0"}
+      },
+      "calculatedColumns": [
+        {"name": "Mean Event Duration (h)",
+         "expression": "[Event Hours (h)] / [Event Count]",
+         "description": "Average hours per event"}
+      ],
+      "hierarchies": [{"name": "Event Asset Hierarchy", "levels": ["Station", "Pump ID"]}]
+    }
+  ],
+  "defaultTable": "PUMP_DATA",
+  "relations": [
+    {"left": "PUMP_DATA", "right": "PUMP_EVENTS", "on": [["Pump ID", "Pump ID"]]},
+    {"left": "PUMP_DATA", "right": "PUMP_EVENT_SUMMARY", "on": [["Station", "Station"], ["Pump ID", "Pump ID"]]}
+  ],
+  "markings": [
+    {"name": "Selected Pump", "color": "#E94165", "default": true},
+    {"name": "Event Focus", "color": "#3050EF", "default": false}
+  ],
+  "filteringSchemes": [
+    {"name": "Fleet Filters", "default": true},
+    {"name": "Event Review", "default": false}
+  ],
+  "properties": [
+    {"name": "SelectedPumpId", "type": "String", "default": "P-101",
+     "description": "Pump shown on the detail page", "listValued": false},
+    {"name": "SelectedStations", "type": "String", "default": ["North Station", "South Station"],
+     "description": "Stations included on the fleet page", "listValued": true},
+    {"name": "AlertThreshold", "type": "Real", "default": 1200.0,
+     "description": "Discharge pressure alarm limit (psig)"},
+    {"name": "TrendWindowDays", "type": "Integer", "default": 30,
+     "description": "Days shown in the trend charts"},
+    {"name": "MaxRows", "type": "LongInteger", "default": 5000000,
+     "description": "Row limit for the event export"},
+    {"name": "PowerPrice", "type": "Currency", "default": 0.11,
+     "description": "Electricity price (USD/kWh)"},
+    {"name": "PumpEfficiency", "type": "SingleReal", "default": 0.75,
+     "description": "Assumed pump efficiency (fraction)"},
+    {"name": "ShowEvents", "type": "Boolean", "default": true,
+     "description": "Overlay pump events on the trend charts"},
+    {"name": "ReportStart", "type": "DateTime", "default": "2026-01-01T00:00:00",
+     "description": "First timestamp of the reporting window"},
+    {"name": "ReportDate", "type": "Date", "default": "2026-01-31",
+     "description": "Reporting date printed on the cover page"},
+    {"name": "ShiftStart", "type": "Time", "default": "06:00:00",
+     "description": "Start of the day shift"},
+    {"name": "SampleInterval", "type": "TimeSpan", "default": "01:00:00",
+     "description": "Historian sampling interval"},
+    {"name": "TrendWindowOptions", "type": "Integer", "default": [7, 30, 90, 365],
+     "description": "Window lengths offered by the trend selector", "listValued": true}
+  ],
+  "dataFunctions": [
+    {
+      "name": "Summarize Pump Events",
+      "description": "Counts events and event hours per pump; looks up each pump's station in PUMP_DATA.",
+      "engine": "python",
+      "script": "datafunctions/summarize_pump_events.py",
+      "inputs": [
+        {"name": "PUMP_EVENTS", "type": "table",
+         "bind": {"table": "PUMP_EVENTS", "columns": "*", "limitByFiltering": null, "limitByMarking": null}},
+        {"name": "PUMP_DATA", "type": "table",
+         "bind": {"table": "PUMP_DATA", "columns": "*", "limitByFiltering": null, "limitByMarking": null}}
+      ],
+      "outputs": [
+        {"name": "PUMP_EVENT_SUMMARY", "type": "table", "target": {"table": "PUMP_EVENT_SUMMARY"}}
+      ],
+      "refresh": "automatic",
+      "executeAtBuild": true
+    }
+  ]
+}

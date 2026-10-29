@@ -1,0 +1,6 @@
+functions:
+  column_statistics:
+    source: functions/calculate_column_statistics.py
+    targets:
+      - dxp: analyses/example_analysis.dxp
+        function: Calculate Column Statistics

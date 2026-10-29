@@ -1,0 +1,59 @@
+{
+ "workbook": "pipe_pressure_drop.xlsx",
+ "outputs": [
+  {
+   "name": "Velocity (ft/s)",
+   "id": "L02",
+   "range": "Calc!D5:D24",
+   "key": "Calc!A5:A24"
+  },
+  {
+   "name": "Friction Loss (psi)",
+   "id": "L05",
+   "range": "Calc!G5:G24",
+   "key": "Calc!A5:A24"
+  },
+  {
+   "name": "Segment Drop (psi)",
+   "id": "L07",
+   "range": "Calc!I5:I24",
+   "key": "Calc!A5:A24"
+  },
+  {
+   "name": "Outlet Pressure (psi)",
+   "id": "L08",
+   "range": "Calc!J5:J24",
+   "key": "Calc!A5:A24"
+  },
+  {
+   "name": "Pressure Gradient (psi/ft)",
+   "id": "L09",
+   "range": "Calc!K5:K24",
+   "key": "Calc!A5:A24"
+  },
+  {
+   "name": "Total Pressure Drop (psi)",
+   "id": "L10",
+   "range": "Summary!B4",
+   "column": "TotalPressureDrop"
+  },
+  {
+   "name": "Outlet Pressure at Line End (psi)",
+   "id": "L08",
+   "range": "Summary!B5",
+   "column": "OutletPressure"
+  },
+  {
+   "name": "Maximum Velocity (ft/s)",
+   "id": "L11",
+   "range": "Summary!B6",
+   "column": "MaxVelocity"
+  },
+  {
+   "name": "Average Gradient (psi/ft)",
+   "id": "L12",
+   "range": "Summary!B7",
+   "column": "AverageGradient"
+  }
+ ]
+}

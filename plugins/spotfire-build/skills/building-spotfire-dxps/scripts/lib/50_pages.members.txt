@@ -1,0 +1,36 @@
+Document.Pages
+Document.FilteringSchemes
+PageCollection.AddNew(String)
+Page.Id
+Page.Visible
+Page.Visuals
+Page.FilterPanel
+Page.DetailsOnDemandPanel
+Page.ApplyLayout(LayoutDefinition)
+Page.GetVisualBounds(Visual, Rectangle)
+FilterPanel.Visible
+FilterPanel.DockingPlacement
+FilterPanel.PanelState
+FilterPanel.FilteringSchemeReference
+DetailsOnDemandPanel.Visible
+DetailsOnDemandPanel.DockingPlacement
+DetailsOnDemandPanel.PanelState
+DockingPlacement.ctor(PanelRegion, Int32)
+PanelRegion.Right
+PanelState.Docked
+FilteringSchemeCollection.DefaultFilteringSchemeReference
+VisualCollection.GetEnumerator
+VisualCollection.Remove(Visual)
+VisualCollection.Count
+Visual.Id
+Visual.Title
+Visual.TypeId
+TypeIdentifier.Name
+VisualContent.Visual
+LayoutDefinition.ctor()
+LayoutDefinition.BeginSideBySideSection()
+LayoutDefinition.BeginSideBySideSection(Single)
+LayoutDefinition.BeginStackedSection()
+LayoutDefinition.BeginStackedSection(Single)
+LayoutDefinition.Add(Visual, Single)
+LayoutDefinition.EndSection()

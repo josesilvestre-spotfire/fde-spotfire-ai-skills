@@ -1,0 +1,5 @@
+.extract/
+staging/
+analyses/.backup/
+__pycache__/
+.venv/

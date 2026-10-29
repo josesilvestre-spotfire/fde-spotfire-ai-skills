@@ -1,0 +1,33 @@
+<div class="app-ta">
+  <h2 class="heading">Method</h2>
+  <table class="table2" cellspacing="0" cellpadding="4">
+    <tbody>
+      <tr>
+        <td><h2 class="subheading-lg">Hydraulic power</h2>
+          <p>Hydraulic (water) horsepower is the power the pump adds to the fluid.</p>
+          <pre><code>WHP = Q * H * SG / 3960
+Efficiency (%) = WHP / shaft power * 100</code></pre>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <table class="table3" cellspacing="0" cellpadding="2">
+            <tbody>
+              <tr><td class="sectiontd"><b>Q</b></td><td class="sectiontd">Flow rate (US gal/min); 1 bbl/d is 42 / 1440 US gal/min</td></tr>
+              <tr><td class="sectiontd"><b>H</b></td><td class="sectiontd">Head (ft)</td></tr>
+              <tr><td class="sectiontd"><b>SG</b></td><td class="sectiontd">Specific gravity of the fluid (dimensionless)</td></tr>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td><h2 class="subheading-lg">Assumptions</h2>
+          <ul>
+            <li>Readings without a positive shaft power are left out of the efficiency.</li>
+            <li>A pump needs the minimum number of readings before it gets a status.</li>
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

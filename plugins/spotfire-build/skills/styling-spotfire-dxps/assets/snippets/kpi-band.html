@@ -1,0 +1,38 @@
+<div class="app-ta">
+  <table class="table3" cellspacing="0" cellpadding="0" style="table-layout: fixed">
+    <tbody>
+      <tr>
+        <td class="kpi-cell">
+          <div class="dashboard-value">{{control:kpiFleetEfficiency}}</div>
+          <div><span class="dashboard-label">Fleet efficiency (%)</span>
+            <span class="tooltip-container"><i class="info-icon">i</i><span class="tooltip">Mean efficiency of every valid reading in the period.</span></span></div>
+        </td>
+        <td class="kpi-cell">
+          <div class="dashboard-value">{{control:kpiPumpsBelowTarget}}</div>
+          <div><span class="dashboard-label">Pumps below target</span>
+            <span class="tooltip-container"><i class="info-icon">i</i><span class="tooltip">Pumps whose mean efficiency is below the target in the settings card.</span></span></div>
+        </td>
+        <td class="kpi-cell">
+          <div class="dashboard-value">{{control:kpiFlowRate}}</div>
+          <div><span class="dashboard-label">Flow (bbl/d)</span>
+            <span class="tooltip-container"><i class="info-icon">i</i><span class="tooltip">Total flow of the selected pumps on the last day of the period.</span></span></div>
+        </td>
+        <td class="kpi-cell">
+          <div class="dashboard-value">{{control:kpiHydraulicPower}}</div>
+          <div><span class="dashboard-label">Hydraulic power (hp)</span>
+            <span class="tooltip-container"><i class="info-icon">i</i><span class="tooltip">Flow times head times specific gravity divided by 3960, summed over the selected pumps.</span></span></div>
+        </td>
+        <td class="kpi-cell">
+          <div class="dashboard-value">{{control:kpiReadings}}</div>
+          <div><span class="dashboard-label">Valid readings</span>
+            <span class="tooltip-container"><i class="info-icon">i</i><span class="tooltip">Readings with a positive shaft power, out of all readings in the period.</span></span></div>
+        </td>
+        <td class="kpi-cell">
+          <div class="dashboard-value">{{control:kpiAlarms}}<span style="color: #B42318">{{control:kpiAlarmsCritical}}</span></div>
+          <div><span class="dashboard-label">Pumps in alarm</span>
+            <span class="tooltip-container flip"><i class="info-icon">i</i><span class="tooltip">Pumps with a reading beyond the critical limit. The value turns red when any pump is in alarm.</span></span></div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

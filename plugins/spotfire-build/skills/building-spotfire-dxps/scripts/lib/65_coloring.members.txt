@@ -1,0 +1,156 @@
+# 65_coloring.py - every public Spotfire member the module touches (sfapi.py has --stdin).
+# types used by name (imports, isinstance)
+CategoryKey
+LineStyle
+ColorInfo
+TextAlign
+VerticalTextAlign
+CategoricalColorRule
+ContinuousColorRule
+ConditionValue
+IntervalMode
+RuleComparisonOperator
+StringComparisonOperator
+ValueAxis
+Fill
+# color axes (charts, KPI tiles) and cell colorings
+BarChart.ColorAxis
+LineChart.ColorAxis
+ScatterPlot.ColorAxis
+CombinationChart.ColorAxis
+BoxPlot.ColorAxis
+WaterfallChart.ColorAxis
+PieChart.ColorAxis
+Treemap.ColorAxis
+ScatterPlot3D.ColorAxis
+KpiVisualization.ColorAxis
+MarkerLayerVisualization.ColorAxis
+FeatureLayerVisualization.ColorAxis
+MarkerLayerVisualization.Data
+FeatureLayerVisualization.Data
+HeatMap.Colorings
+TablePlot.Colorings
+CrossTablePlot.Colorings
+ColorAxis.Expression
+ColorAxis.Coloring
+VisualContent.Title
+Visualization.Data
+VisualizationData.DataTableReference
+DataTable.Columns
+DataColumnCollection.TryGetValue(String, out DataColumn)
+DataColumn.DataType
+DataType.Name
+DataType.Integer
+DataType.LongInteger
+DataType.Real
+DataType.SingleReal
+DataType.Currency
+DataProperty.Value
+# Coloring and its rules
+Coloring.Count
+Coloring.Item
+Coloring.Clear()
+Coloring.Remove(ColorRule)
+Coloring.IndexOf(ColorRule)
+Coloring.Move(Int32, Int32)
+Coloring.AddCategoricalColorRule()
+Coloring.AddContinuousColorRule()
+Coloring.AddThresholdColorRule(RuleComparisonOperator, ConditionValue, Color)
+Coloring.AddRangeRule(ConditionValue, ConditionValue, Color)
+Coloring.AddStringColorRule(StringComparisonOperator, ConditionValue, Color)
+Coloring.AddExpressionRule(String, Color)
+Coloring.AddTopNRule(Int32, Color)
+Coloring.AddBottomNRule(Int32, Color)
+Coloring.SetColorForCategory(CategoryKey, Color)
+Coloring.DefaultColor
+Coloring.EmptyColor
+CategoricalColorRule.SetColors(IEnumerable<Color>)
+ContinuousColorRule.IntervalMode
+ContinuousColorRule.Breakpoints
+ColorBreakpointCollection.Clear()
+ColorBreakpointCollection.Add(ConditionValue, Color)
+IntervalMode.Gradient
+ConditionValue.MinValue
+ConditionValue.MaxValue
+ConditionValue.MedianValue
+ConditionValue.AverageValue
+ConditionValue.CreateLiteral(Object)
+ConditionValue.CreateLiteral(Object, DataType)
+ConditionValue.CreatePercentValue(Double)
+ConditionValue.CreateExpression(String)
+RuleComparisonOperator.Greater
+RuleComparisonOperator.Less
+RuleComparisonOperator.Equal
+StringComparisonOperator.Equal
+CategoryKey.ctor(Object[])
+CategoryKey.Equals(Object)
+ColoringCollection.DefaultNumericReference
+ColoringCollection.AddNew(String)
+ColoringCollection.AddMapping(CategoryKey, Coloring)
+ColoringCollection.GetCategories()
+ColoringCollection.GetColoringForCategory(CategoryKey)
+# reference layers (14.6 reference elements)
+BarChart.Layers
+LineChart.Layers
+ScatterPlot.Layers
+CombinationChart.Layers
+BoxPlot.Layers
+WaterfallChart.Layers
+LayerCollection.AddNewReferenceLayer()
+LayerCollection.Remove(Layer)
+ReferenceLayer.Name
+ReferenceLayer.Data
+ReferenceLayerData.DataTableReference
+ReferenceLayer.ValueAxis
+ValueAxis.X
+ValueAxis.Y
+ReferenceLayer.Expression
+ReferenceLayer.SecondaryExpression
+ReferenceLayer.Line
+ReferenceLayer.Band
+ReferenceLayer.Label
+ReferenceLayer.IsBackground
+ReferenceLayer.Transparency
+Spotfire.Dxp.Application.Visuals.ReferenceElements.Line.Enabled
+Spotfire.Dxp.Application.Visuals.ReferenceElements.Line.Stroke
+Band.FillEnabled
+Band.Fill
+Band.StrokeEnabled
+Band.Stroke
+Fill.ctor()
+Fill.WithColor(ColorInfo)
+Stroke.WithColor(ColorInfo)
+Stroke.WithStyle(LineStyle)
+Stroke.WithWidth(Single)
+Spotfire.Dxp.Application.Visuals.ReferenceElements.Label.Enabled
+Spotfire.Dxp.Application.Visuals.ReferenceElements.Label.Style
+LabelStyle.WithShowDisplayName(Boolean)
+LabelStyle.WithShowValue(Boolean)
+LabelStyle.WithTextAlign(TextAlign)
+LabelStyle.WithVerticalTextAlign(VerticalTextAlign)
+TextAlign.Right
+VerticalTextAlign.Top
+ColorInfo.ctor(Int32)
+LineStyle.Single
+LineStyle.Dot
+LineStyle.Dash
+LineStyle.Double
+# fitting models (Lines & Curves)
+BarChart.FittingModels
+LineChart.FittingModels
+ScatterPlot.FittingModels
+CombinationChart.FittingModels
+BoxPlot.FittingModels
+WaterfallChart.FittingModels
+FittingModelCollection.AddStraightLineFit()
+FittingModelCollection.AddCurve(String)
+FittingModelCollection.Remove(FittingModel)
+StraightLineFittingModel.Line
+ReferenceCurveFittingModel.Curve
+ReferenceCurve.Visible
+ReferenceCurve.Color
+ReferenceCurve.CustomDisplayName
+ReferenceCurve.Details
+ReferenceDetailItemCollection.GetEnumerator
+ReferenceDetailItem.Name
+ReferenceDetailItem.ShowInLabel

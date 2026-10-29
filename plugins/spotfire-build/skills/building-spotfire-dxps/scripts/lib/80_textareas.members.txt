@@ -1,0 +1,36 @@
+Page.Visuals
+Page.Title
+Page.Id
+VisualCollection.AddNew(TypeIdentifier)
+VisualTypeIdentifiers.HtmlTextArea
+Visual.As
+Visual.Title
+Visual.ShowTitle
+HtmlTextArea
+HtmlTextArea.HtmlContent
+DataTable.Name
+DataTable.Columns
+DataColumnCollection.TryGetValue(String, out DataColumn)
+DataColumn.Name
+DataColumn.DataType
+DataType.Name
+DataProperty.IsListValued
+DataProperty.Name
+ScriptDefinition.Name
+ScriptDefinition.Parameters
+ScriptParameterCollection.GetEnumerator
+ScriptParameter.Name
+ScriptParameter.Type
+ScriptParameterType.Name
+Document.Bookmarks
+BookmarkCollection.GetEnumerator
+BookmarkCollection.TryGetBookmark(Guid, out Bookmark)
+Spotfire.Dxp.Application.Bookmark.DisplayName
+AnalysisApplication.GetService
+BookmarkManager
+BookmarkManager.GetBookmarks
+Spotfire.Dxp.Application.AnalyticItems.Bookmark.Name
+Spotfire.Dxp.Application.AnalyticItems.Bookmark.Id
+TypeIdentifier
+DocumentNode
+DocumentOperation

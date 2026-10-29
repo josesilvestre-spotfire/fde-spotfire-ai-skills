@@ -1,0 +1,15 @@
+{
+  "name": "spotfire-ingest",
+  "version": "0.1.0-alpha.1",
+  "description": "Read existing work (app prototypes, Excel calculation workbooks) and write the App Brief, Logic Spec and build spec that the build skills use.",
+  "author": {
+    "name": "josesilvestre-spotfire"
+  },
+  "keywords": [
+    "spotfire",
+    "ingest",
+    "excel",
+    "prototype",
+    "requirements"
+  ]
+}

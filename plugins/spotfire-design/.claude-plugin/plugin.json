@@ -1,0 +1,14 @@
+{
+  "name": "spotfire-design",
+  "version": "0.1.0-alpha.1",
+  "description": "Decide what a Spotfire analysis must do for its users and how it behaves: App Brief framing, design rules and packaging.",
+  "author": {
+    "name": "josesilvestre-spotfire"
+  },
+  "keywords": [
+    "spotfire",
+    "design",
+    "app-brief",
+    "accelerator"
+  ]
+}

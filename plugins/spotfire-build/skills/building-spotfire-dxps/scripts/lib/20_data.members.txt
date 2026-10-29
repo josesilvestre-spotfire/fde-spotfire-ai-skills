@@ -1,0 +1,107 @@
+# Public Spotfire members touched by lib/20_data.py (no internal members are used).
+# check: python scripts/sfapi.py has --stdin < lib/20_data.members.txt
+# document / data manager
+Document.Data
+Document.FilteringSchemes
+DataManager.Properties
+DataManager.Tables
+DataManager.SaveSettings
+DataManager.Relations
+DataManager.Markings
+DataManager.Filterings
+# document properties
+NameString.ValidateCustomPropertyName(String)
+DataPropertyRegistry.TryGetProperty(DataPropertyClass, String, out DataProperty)
+DataPropertyRegistry.AddProperty(DataPropertyClass, DataProperty)
+DataPropertyClass.Document
+DataProperty.CreateCustomPrototype(String, String, Object, DataType, DataPropertyAttributes)
+DataProperty.DefaultAttributes
+DataProperty.Value
+DataProperty.IsListValued
+DataProperty.Description
+DataPropertyAttributes.IsPropagated
+DataPropertyAttributes.IsListValued
+# data types (data_type(name) resolves these static fields by name)
+DataType.String
+DataType.Integer
+DataType.LongInteger
+DataType.Real
+DataType.SingleReal
+DataType.Currency
+DataType.Date
+DataType.DateTime
+DataType.Time
+DataType.TimeSpan
+DataType.Boolean
+DataType.Binary
+DataType.DefaultValue
+DataType.Name
+DataType.CreateLocalizedFormatter()
+# file data sources
+SbdfFileDataSource.ctor(String)
+TextFileDataSource.ctor(String, TextDataReaderSettings)
+TextDataReaderSettings.ctor()
+TextDataReaderSettings.Separator
+TextDataReaderSettings.AddColumnNameRow(Int32)
+TextDataReaderSettings.CultureName
+TextDataReaderSettings.CodePage
+TextDataReaderSettings.DataTypesGivenName
+DataSource.IsPromptingAllowed
+# tables and embedding
+DataTableCollection.TryGetValue(String, out DataTable)
+DataTableCollection.Add(String, DataSource, Boolean)
+DataTableCollection.DefaultTableReference
+DataTable.ReplaceData(DataSource)
+DataTable.Id
+DataTable.Name
+DataTable.RowCount
+DataTable.Columns
+DataTable.Properties
+DataTable.NameEscapedForExpression
+DataTableProperties.SetProperty(String, Object)
+DataSaveSettings.TryGetDataTableSettings(Guid, out DataTableSaveSettings)
+DataSaveSettings.DataTableSettings
+DataTableSaveSettings.ctor(DataTable, Boolean, Boolean)
+DataTableSaveSettings.UseLinkedData
+# columns, calculated columns, hierarchies, formats
+DataColumnCollection.TryGetValue(String, out DataColumn)
+DataColumnCollection.Count
+DataColumnCollection.AddCalculatedColumn(String, String)
+DataColumnCollection.AddHierarchyColumn(String, HierarchyDefinition)
+DataColumn.DataType
+DataColumn.Properties
+DataColumn.IsValid
+DataColumn.As
+DataColumnProperties.Description
+DataColumnProperties.Formatter
+CalculatedColumn.Expression
+HierarchyColumn.HierarchyDefinition
+HierarchyDefinition.ctor(HierarchyNestingMode, IList<String>)
+HierarchyNestingMode.Nested
+NumberFormatter
+DateTimeFormatter
+NumberFormatter.FormatString
+DateTimeFormatter.FormatString
+ExpressionUtilities.EscapeIdentifier(String)
+# relations
+DataRelationCollection.FindRelation(DataTable, DataTable)
+DataRelationCollection.Add(DataTable, DataTable, String)
+DataRelation.Expression
+DataRelation.IsValid
+# markings
+DataMarkingSelectionCollection.TryGetValue(String, out DataMarkingSelection)
+DataMarkingSelectionCollection.Add(String)
+DataMarkingSelectionCollection.DefaultMarkingReference
+DataMarkingSelectionCollection.Count
+DataMarkingSelection.Name
+DataMarkingSelection.Color
+# filtering schemes
+DataFilteringSelectionCollection.TryGetValue(String, out DataFilteringSelection)
+DataFilteringSelectionCollection.Add(String)
+DataFilteringSelectionCollection.DefaultFilteringReference
+DataFilteringSelection.Name
+DataFilteringSelection.Equals(Object)
+FilteringSchemeCollection.Item
+FilteringSchemeCollection.GetEnumerator()
+FilteringSchemeCollection.DefaultFilteringSchemeReference
+FilteringScheme.FilteringSelectionReference

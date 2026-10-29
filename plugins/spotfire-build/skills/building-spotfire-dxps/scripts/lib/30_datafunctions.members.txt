@@ -1,0 +1,112 @@
+# Public Spotfire members touched by lib/30_datafunctions.py (no internal members are used).
+# check: python scripts/sfapi.py has --stdin < lib/30_datafunctions.members.txt
+# document / data manager
+Document.Data
+DataManager.DataFunctions
+DataManager.Properties
+DataManager.Filterings
+# data-function collection and instance
+DataFunctionCollection.GetEnumerator()
+DataFunctionCollection.AddNew(String, DataFunctionDefinition)
+DataFunctionCollection.Remove(DataFunction)
+DataFunction.Name
+DataFunction.DataFunctionDefinition
+DataFunction.Inputs
+DataFunction.Outputs
+DataFunction.UpdateBehavior
+DataFunction.ExecuteSynchronously()
+DataFunction.NeedsRefresh
+DataFunctionUpdateBehavior.Automatic
+DataFunctionUpdateBehavior.Manual
+# settings escape hatch used by assets/examples/fragments/datafunctions.json (apply_settings, 00_core)
+DataFunction.Visible
+# definition (read back after AddNew)
+DataFunctionDefinition.FunctionName
+DataFunctionDefinition.DisplayName
+DataFunctionDefinition.InputParameters
+DataFunctionDefinition.OutputParameters
+DataFunctionDefinition.ServiceType
+DataFunctionDefinition.IsApprovedByCurrentUser
+TypeIdentifier.Name
+InputParameter.Name
+OutputParameter.Name
+# definition builder
+DataFunctionDefinitionBuilder.ctor(String, TypeIdentifier)
+DataFunctionDefinitionBuilder.FunctionName
+DataFunctionDefinitionBuilder.DisplayName
+DataFunctionDefinitionBuilder.Description
+DataFunctionDefinitionBuilder.Settings
+DataFunctionDefinitionBuilder.InputParameters
+DataFunctionDefinitionBuilder.OutputParameters
+DataFunctionDefinitionBuilder.Build()
+IDictionary<String, String>.Item
+IDictionary<String, String>.Add
+IList<InputParameter>.Add
+IList<OutputParameter>.Add
+DataFunctionExecutorTypeIdentifiers.PythonScriptExecutor
+DataFunctionExecutorTypeIdentifiers.TERRScriptExecutor
+# parameter builders
+InputParameterBuilder.ctor(String, ParameterType)
+InputParameterBuilder.DisplayName
+InputParameterBuilder.Description
+InputParameterBuilder.AddAllowedDataType(DataType)
+InputParameterBuilder.Build()
+OutputParameterBuilder.ctor(String, ParameterType)
+OutputParameterBuilder.DisplayName
+OutputParameterBuilder.Description
+OutputParameterBuilder.Build()
+ParameterType.Value
+ParameterType.Column
+ParameterType.Table
+# allowed data types (data_type(name) from 00_core) and type names
+DataType.Integer
+DataType.Real
+DataType.SingleReal
+DataType.Currency
+DataType.String
+DataType.Date
+DataType.Time
+DataType.DateTime
+DataType.Boolean
+DataType.Binary
+DataType.LongInteger
+DataType.TimeSpan
+DataType.Name
+# input bindings
+DataFunctionInputCollection.SetInput(InputParameter, String)
+DataFunctionInputCollection.SetInput(InputParameter, String, Boolean, DataSelection[])
+DataFunctionInput.Expression
+DataSelection
+DataSelection.Name
+FilteringScheme.FilteringSelectionReference
+DataFilteringSelectionCollection.TryGetValue(String, out DataFilteringSelection)
+ExpressionUtilities.EscapeIdentifier(String)
+ExpressionUtilities.EscapeStringLiteral(String)
+DataPropertyClass.Document
+# output bindings and execution checks
+DataFunctionOutputCollection.SetTableOutput(OutputParameter, String)
+DataFunctionOutputCollection.SetReplaceDataOutput(OutputParameter, DataTable)
+DataFunctionOutputCollection.SetDocumentPropertyOutput(OutputParameter, String)
+DataFunctionOutputCollection.TryGetValue(OutputParameter, out DataFunctionOutput)
+TableOutput.DataTableReference
+ReplaceDataOutput.DataTableReference
+DataPropertyRegistry.ContainsProperty(DataPropertyClass, String)
+# tables and columns
+DataTable.Name
+DataTable.RowCount
+DataTable.Columns
+DataTable.Id
+DataColumnCollection.TryGetValue(String, out DataColumn)
+DataColumnCollection.Count
+DataColumnCollection.GetEnumerator()
+DataColumn.Name
+DataColumn.DataType
+# .NET BCL, not in the Spotfire index: System.Array[T](list), System.IO.File.ReadAllText(String),
+# System.DateTime .Year .Month .Day .Hour .Minute .Second .Millisecond and System.TimeSpan .Days
+# .Hours .Minutes .Seconds .Milliseconds (values from net_value, 00_core)
+# reached through shared lookups (B.table / B.has_table / B.prop / B.marking in 00_core)
+DataManager.Tables
+DataManager.Markings
+DataTableCollection.TryGetValue(String, out DataTable)
+DataPropertyRegistry.TryGetProperty(DataPropertyClass, String, out DataProperty)
+DataMarkingSelectionCollection.TryGetValue(String, out DataMarkingSelection)

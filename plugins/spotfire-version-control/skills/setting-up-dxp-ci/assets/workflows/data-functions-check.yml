@@ -1,0 +1,69 @@
+# Data function check for a project that commits its DXPs (analyses/ in the
+# repository) and applies script changes with the update tool of the
+# updating-data-functions-with-claude skill.
+# Template from the setting-up-dxp-ci skill. Copy it to .github/workflows/ and
+# replace every <...> placeholder.
+#
+# check            every push and pull request, GitHub-hosted runner, no
+#                  Spotfire needed:
+#                    dxp validate  dxpkit.yaml and the Python syntax of every script
+#                    dxp status    each analysis carries the script in functions/.
+#                  A commit that changes a script without applying and promoting
+#                  it fails here (git ahead). Make this a required check.
+# spotfire-report  optional, pull requests, self-hosted Windows runner labelled
+#                  "spotfire" with Analyst signed in and the runner analysis
+#                  built for the runner's account. Applies the branch's script
+#                  in a staging copy and uploads REPORT.md and the page renders
+#                  for the reviewers. It never promotes: a person approves the
+#                  promotion, then the promoted analysis is committed.
+#
+# Repository variable DXPKIT_PIP: the argument pip uses to install dxpkit
+# from its source. dxpkit is not distributed with the skills library.
+name: data-functions
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dxpkit
+        shell: bash
+        env:
+          DXPKIT_PIP: ${{ vars.DXPKIT_PIP }}
+        run: |
+          if [ -z "$DXPKIT_PIP" ]; then
+            echo "Set the repository variable DXPKIT_PIP (how pip installs dxpkit)." >&2
+            exit 1
+          fi
+          python -m pip install "$DXPKIT_PIP"
+      - run: dxp validate
+      - run: dxp status
+
+  spotfire-report:
+    if: github.event_name == 'pull_request' && vars.SPOTFIRE_REPORT == 'true'
+    runs-on: [self-hosted, windows, spotfire]
+    env:
+      DXP_WORKSPACE: <runner workspace folder that holds runner\runner.dxp>
+      ANALYSIS: analyses/<analysis>.dxp
+      FUNCTION: <Function Name>
+      SCRIPT: functions/<function>.py
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply in staging and report
+        shell: pwsh
+        run: python tools/update_data_function.py $env:ANALYSIS "$env:FUNCTION" $env:SCRIPT --report reports/ci
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: spotfire-report
+          path: reports/ci/

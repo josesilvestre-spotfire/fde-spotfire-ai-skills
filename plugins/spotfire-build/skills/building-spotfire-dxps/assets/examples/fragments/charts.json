@@ -1,0 +1,282 @@
+{
+  "specVersion": 1,
+  "defaultTable": "PUMP_DATA",
+  "markings": [
+    {"name": "Selected Pump", "color": "#E94165", "default": true},
+    {"name": "Pump Detail", "color": "#3050EF"}
+  ],
+  "properties": [
+    {"name": "SelectedStation", "type": "String", "default": "North Station",
+     "description": "Station shown on the station discharge trend"},
+    {"name": "AlarmDischargePsig", "type": "Real", "default": 1400.0,
+     "description": "Discharge pressure alarm limit (psig)"}
+  ],
+  "pages": [
+    {
+      "title": "Pump Trends",
+      "visuals": [
+        {
+          "id": "trendMeasures",
+          "type": "lineChart",
+          "title": "Flow and Discharge Pressure",
+          "description": "Hourly fleet averages: one panel and one scale per measure, one line per station.",
+          "x": "[Timestamp]",
+          "y": ["Avg([Flow Rate (bbl/d)]) as [Flow (bbl/d)]",
+                "Avg([Discharge Pressure (psig)]) as [Discharge (psig)]"],
+          "lineBy": "[Station]",
+          "trellis": {"panelBy": "<[Axis.Default.Names]>", "rows": 2, "columns": 1},
+          "xScale": {"gridlines": false},
+          "yScale": {"individualScaling": true, "gridlines": true},
+          "showMarkers": false,
+          "lineWidth": 2,
+          "coloring": {"categorical": {"Flow (bbl/d)": "#333C66", "Discharge (psig)": "#E94165"}},
+          "settings": {"XAxis.ManualZoom": true}
+        },
+        {
+          "id": "trendStation",
+          "type": "lineChart",
+          "title": "Discharge Pressure at ${SelectedStation}",
+          "x": "[Timestamp]",
+          "y": "Avg([Discharge Pressure (psig)])",
+          "colorBy": "<[Pump ID]>",
+          "limitExpression": "[Station] = [$SelectedStation]",
+          "xScale": {"min": "2026-01-01T00:00:00", "title": "Time"},
+          "yScale": {"min": 0.0, "max": 2000.0, "title": "Discharge Pressure (psig)"},
+          "showMarkers": true,
+          "lineWidth": 1,
+          "steps": true,
+          "referenceLayers": [
+            {"kind": "horizontalLine", "value": "[$AlarmDischargePsig]", "color": "#E94165",
+             "dash": "dash", "width": 2, "label": "Discharge Alarm"}
+          ]
+        },
+        {
+          "id": "trendPressures",
+          "type": "lineChart",
+          "title": "Suction and Discharge Pressure",
+          "x": "[Timestamp]",
+          "y": ["Avg([Suction Pressure (psig)]) as [Suction (psig)]",
+                "Avg([Discharge Pressure (psig)]) as [Discharge (psig)]"],
+          "colorBy": "<[Axis.Default.Names]>",
+          "yScale": {"individualScaling": true},
+          "coloring": {"categorical": {"Suction (psig)": "#2E8540", "Discharge (psig)": "#E94165"}}
+        },
+        {
+          "id": "comboDailyFlow",
+          "type": "combinationChart",
+          "title": "Daily Flow and Motor Current",
+          "x": "<BinByDateTime([Timestamp],\"Year.Month.DayOfMonth\",2)>",
+          "series": [
+            {"expression": "Sum([Flow Rate (bbl/d)]) as [Daily Flow (bbl/d)]", "kind": "bar"},
+            {"expression": "Avg([Motor Current (A)])", "kind": "line"}
+          ],
+          "secondaryScale": ["Avg([Motor Current (A)])"],
+          "coloring": {"categorical": {"Daily Flow (bbl/d)": "#333C66",
+                                       "Avg(Motor Current (A))": "#E94165"}}
+        },
+        {
+          "id": "histFlow",
+          "type": "histogram",
+          "title": "Flow Rate Distribution",
+          "marking": null,
+          "column": "Flow Rate (bbl/d)",
+          "bins": 30,
+          "colorBy": "<[Station]>",
+          "legend": {"visible": true}
+        }
+      ],
+      "layout": {"column": [
+        {"row": [
+          {"visual": "trendMeasures", "weight": 50},
+          {"column": [
+            {"visual": "trendStation", "weight": 50},
+            {"visual": "trendPressures", "weight": 50}
+          ], "weight": 50}
+        ], "weight": 60},
+        {"row": [
+          {"visual": "comboDailyFlow", "weight": 60},
+          {"visual": "histFlow", "weight": 40}
+        ], "weight": 40}
+      ]}
+    },
+    {
+      "title": "Fleet Comparison",
+      "visuals": [
+        {
+          "id": "barFlowByStation",
+          "type": "barChart",
+          "title": "Total Flow by Station",
+          "x": "<[Station]>",
+          "y": "Sum([Flow Rate (bbl/d)])",
+          "colorBy": "<[Status]>",
+          "stack": "stacked",
+          "sort": "descending",
+          "labels": true,
+          "yScale": {"title": "Total Flow (bbl/d)", "gridlines": true},
+          "coloring": {"categorical": {"Running": "#2E8540", "Tripped": "#E94165", "Standby": "#F2B134"}}
+        },
+        {
+          "id": "barPumpCurrent",
+          "type": "barChart",
+          "title": "Average Motor Current by Pump",
+          "x": "<[Pump ID]>",
+          "y": "Avg([Motor Current (A)]) as [Avg Current (A)]",
+          "orientation": "horizontal",
+          "sort": "ascending",
+          "labels": true,
+          "coloring": {"fixed": "#333C66"},
+          "legend": {"visible": false}
+        },
+        {
+          "id": "barPressureCompare",
+          "type": "barChart",
+          "title": "Suction and Discharge Pressure by Station",
+          "x": "<[Station]>",
+          "y": ["Avg([Suction Pressure (psig)]) as [Suction (psig)]",
+                "Avg([Discharge Pressure (psig)]) as [Discharge (psig)]"],
+          "stack": "sideBySide",
+          "trellis": {"rowsBy": "<[Status]>"},
+          "yScale": {"log": true, "gridlines": true},
+          "settings": {"XAxis.Scale.LabelOrientation": "Vertical"}
+        },
+        {
+          "id": "barStatusMix",
+          "type": "barChart",
+          "title": "Status Mix by Station",
+          "x": "<[Station]>",
+          "y": "Count() as [Readings]",
+          "colorBy": "<[Status]>",
+          "stack": "percent",
+          "sort": "none",
+          "coloring": {"categorical": {"Running": "#2E8540", "Tripped": "#E94165", "Standby": "#F2B134"}}
+        },
+        {
+          "id": "boxDischarge",
+          "type": "boxPlot",
+          "title": "Discharge Pressure Spread",
+          "description": "Every reading, independent of the page filters.",
+          "x": "<[Station]>",
+          "y": "[Discharge Pressure (psig)]",
+          "colorBy": "<[Station]>",
+          "trellis": {"columnsBy": "<[Status]>"},
+          "useFiltering": false,
+          "referenceLayers": [
+            {"kind": "horizontalLine", "value": "[$AlarmDischargePsig]", "color": "#E94165",
+             "dash": "dot", "label": "Discharge Alarm"}
+          ]
+        },
+        {
+          "id": "pieStatus",
+          "type": "pieChart",
+          "title": "Status Share by Station",
+          "sector": "[Status]",
+          "size": "Count()",
+          "labels": true,
+          "trellis": {"panelBy": "<[Station]>", "columns": 3},
+          "coloring": {"categorical": {"Running": "#2E8540", "Tripped": "#E94165", "Standby": "#F2B134"}}
+        }
+      ],
+      "layout": {"column": [
+        {"row": [
+          {"visual": "barFlowByStation", "weight": 34},
+          {"visual": "barPumpCurrent", "weight": 33},
+          {"visual": "barPressureCompare", "weight": 33}
+        ], "weight": 50},
+        {"row": [
+          {"visual": "barStatusMix", "weight": 34},
+          {"visual": "boxDischarge", "weight": 33},
+          {"visual": "pieStatus", "weight": 33}
+        ], "weight": 50}
+      ]}
+    },
+    {
+      "title": "Pump Relationships",
+      "visuals": [
+        {
+          "id": "scatterDischargeFlow",
+          "type": "scatterPlot",
+          "title": "Discharge Pressure vs Flow",
+          "marking": "Selected Pump",
+          "x": "[Flow Rate (bbl/d)]",
+          "y": "[Discharge Pressure (psig)]",
+          "colorBy": "<[Station]>",
+          "sizeBy": "Avg([Motor Current (A)])",
+          "shapeBy": "[Status]",
+          "labelBy": "First([Pump ID])",
+          "markerSize": 4.5,
+          "lineBy": "<[Pump ID]>",
+          "xScale": {"title": "Flow Rate (bbl/d)", "gridlines": true},
+          "yScale": {"min": 0.0},
+          "fittingModels": [{"kind": "straightLine", "color": "#3050EF", "label": "Fleet Trend"}]
+        },
+        {
+          "id": "scatterPumpDetail",
+          "type": "scatterPlot",
+          "title": "Pressures of the Marked Pumps",
+          "marking": "Pump Detail",
+          "limitByMarkings": ["Selected Pump"],
+          "emptyMarkingBehavior": "ShowMessage",
+          "x": "[Timestamp]",
+          "y": ["[Suction Pressure (psig)]", "[Discharge Pressure (psig)]"],
+          "markerSize": 2,
+          "trellis": {"panelBy": "<[Pump ID]>", "columns": 2},
+          "yScale": {"individualScaling": true},
+          "settings": {"Data.LimitingMarkingsEmptyMessage": "Mark pumps in Discharge Pressure vs Flow to see their pressures."}
+        },
+        {
+          "id": "scatter3dEnvelope",
+          "type": "scatterPlot3D",
+          "title": "Operating Envelope",
+          "x": "[Flow Rate (bbl/d)]",
+          "y": "[Discharge Pressure (psig)]",
+          "z": "[Motor Current (A)]",
+          "colorBy": "[Suction Pressure (psig)]",
+          "sizeBy": "[Motor Current (A)]",
+          "coloring": {"gradient": [{"at": "min", "color": "#3050EF"}, {"at": "max", "color": "#E94165"}]},
+          "postScript": "content.ShowNavigationControls = True"
+        },
+        {
+          "id": "heatEvents",
+          "type": "heatMap",
+          "title": "Events by Pump and Severity",
+          "table": "PUMP_EVENTS",
+          "x": "<[Severity]>",
+          "y": "<[Pump ID]>",
+          "value": "Count([Event ID]) as [Events]",
+          "coloring": {"gradient": [{"at": "min", "color": "#FFFFFF"}, {"at": "max", "color": "#E94165"}]}
+        },
+        {
+          "id": "treemapFlow",
+          "type": "treemap",
+          "title": "Flow by Station and Pump",
+          "hierarchy": ["[Station]", "Pump ID"],
+          "size": "Sum([Flow Rate (bbl/d)])",
+          "colorBy": "<[Status]>",
+          "coloring": {"categorical": {"Running": "#2E8540", "Tripped": "#E94165", "Standby": "#F2B134"}}
+        },
+        {
+          "id": "waterfallFlow",
+          "type": "waterfallChart",
+          "title": "Flow Bridge by Station",
+          "showTitle": false,
+          "category": "<[Station]>",
+          "value": "Sum([Flow Rate (bbl/d)]) as [Flow (bbl/d)]",
+          "colorBy": "<[Status]>",
+          "legend": {"visible": false}
+        }
+      ],
+      "layout": {"column": [
+        {"row": [
+          {"visual": "scatterDischargeFlow", "weight": 50},
+          {"visual": "scatterPumpDetail", "weight": 50}
+        ], "weight": 50},
+        {"row": [
+          {"visual": "scatter3dEnvelope", "weight": 25},
+          {"visual": "heatEvents", "weight": 25},
+          {"visual": "treemapFlow", "weight": 25},
+          {"visual": "waterfallFlow", "weight": 25}
+        ], "weight": 50}
+      ]}
+    }
+  ]
+}

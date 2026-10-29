@@ -1,0 +1,20 @@
+# Public Spotfire properties assigned by lib/75_maps.py
+# check: python scripts/sfapi.py has --set --stdin < lib/75_maps.set.txt
+Spotfire.Dxp.Application.Visuals.Maps.MapChartLayer.Title
+Spotfire.Dxp.Application.Visuals.Maps.MarkerLayerVisualization.PositioningMethod
+Spotfire.Dxp.Application.Visuals.ScaleAxis.Expression
+Spotfire.Dxp.Application.Visuals.LineConnection.UseMarkerColor
+Spotfire.Dxp.Application.Visuals.LineConnection.Width
+Spotfire.Dxp.Application.Visuals.LineConnection.IsBackground
+Spotfire.Dxp.Application.Visuals.CategoricalAxisBase.Expression
+Spotfire.Dxp.Application.Visuals.SizeAxis.Expression
+Spotfire.Dxp.Application.Visuals.ColorAxis.Expression
+Spotfire.Dxp.Application.Visuals.GroupByAxis.Expression
+Spotfire.Dxp.Data.DataColumnProperties.ContentType
+Spotfire.Dxp.Application.Visuals.VisualizationData.MarkingReference
+Spotfire.Dxp.Application.Visuals.VisualizationData.UseActiveFiltering
+Spotfire.Dxp.Application.Visuals.VisualizationData.LimitingMarkingsEmptyBehavior
+Spotfire.Dxp.Application.Visuals.VisualizationData.WhereClauseExpression
+Spotfire.Dxp.Application.Visuals.Maps.MapChart.InteractiveLayerReference
+Spotfire.Dxp.Application.Visuals.Maps.MapChart.TrellisLayerReference
+Spotfire.Dxp.Application.Visuals.Maps.MapChart.AutoZoom

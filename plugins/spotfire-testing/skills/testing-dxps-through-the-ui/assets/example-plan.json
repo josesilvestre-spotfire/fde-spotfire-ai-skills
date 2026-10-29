@@ -1,0 +1,22 @@
+{
+  "analysis": "C:/ui-tests/example_analysis.dxp",
+  "window": {"x": 40, "y": 40, "w": 1600, "h": 1000},
+  "out": "C:/ui-tests/run-01",
+  "settle": 2.0,
+  "boxes": {
+    "rate-chart": [10, 150, 880, 960],
+    "stats-table": [890, 150, 1590, 470],
+    "stats-bars": [890, 480, 1590, 960]
+  },
+  "steps": [
+    {"name": "first click on the page background", "do": "click", "at": [800, 120]},
+    {"name": "mark one bar", "do": "click", "at": [1010, 700],
+     "expect": {"changed": ["stats-table", "stats-bars"], "unchanged": ["rate-chart"]}},
+    {"name": "clear the marking with a click on empty plot area", "do": "click",
+     "at": [1560, 500], "expect": {"changed": ["stats-table", "stats-bars"]}},
+    {"name": "mark a period in the rate chart", "do": "drag",
+     "from": [200, 300], "to": [420, 900],
+     "expect": {"changed": ["rate-chart"]}},
+    {"name": "open the second page tab", "do": "click", "at": [260, 75]}
+  ]
+}

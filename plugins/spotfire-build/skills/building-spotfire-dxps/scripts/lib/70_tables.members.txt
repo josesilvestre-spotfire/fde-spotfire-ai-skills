@@ -1,0 +1,148 @@
+Page.Visuals
+VisualCollection.AddNew(TypeIdentifier)
+VisualTypeIdentifiers.Table
+VisualTypeIdentifiers.CrossTable
+VisualTypeIdentifiers.SummaryTable
+VisualTypeIdentifiers.GraphicalTable
+VisualTypeIdentifiers.KpiChart
+Visual.As
+TablePlot.Data
+CrossTablePlot.Data
+SummaryTable.Data
+GraphicalTable.Data
+KpiChart.Data
+KpiVisualization.Data
+VisualizationData.DataTableReference
+VisualizationData.Filterings
+VisualizationData.MarkingReference
+VisualizationData.UseActiveFiltering
+VisualizationData.WhereClauseExpression
+VisualizationData.LimitingMarkingsEmptyBehavior
+VisualizationData.LimitingMarkingsEmptyMessage
+VisualizationData.MarkingCombinationMethod
+VisualizationFilteringCollection.GetEnumerator
+VisualizationFilteringCollection.Count
+VisualizationFilteringCollection.RemoveAt(Int32)
+VisualizationFilteringCollection.Add(DataSelection)
+DataTable.Columns
+DataTable.Name
+DataColumnCollection.TryGetValue(String, out DataColumn)
+DataColumnCollection.GetEnumerator
+DataColumn.Name
+DataColumn.DataType
+DataType.Name
+DataType.IsNumeric
+DataType.Integer
+DataType.LongInteger
+DataType.Real
+DataProperty.Value
+TablePlot.TableColumns
+TablePlot.AutoAddNewColumns
+TablePlot.SortInfos
+TablePlot.Colorings
+TableColumnCollection.Clear
+TableColumnCollection.Add(DataColumn)
+TableColumnCollection.Count
+TableColumnCollection.TryGetTableColumn(DataColumn, out TableColumn)
+TableColumn.Width
+TableSortInfoCollection.Clear
+TableSortInfoCollection.Add(DataColumn, TablePlotColumnSortMode)
+TableSortInfoCollection.Count
+TablePlotColumnSortMode.Ascending
+TablePlotColumnSortMode.Descending
+ConditionValue.CreateLiteral(Object)
+ConditionValue.CreateLiteral(Object, DataType)
+ConditionValue.CreatePercentValue(Double)
+ConditionValue.CreateExpression(String)
+ConditionValue.MinValue
+ConditionValue.MaxValue
+ConditionValue.MedianValue
+ConditionValue.AverageValue
+RuleComparisonOperator.Greater
+RuleComparisonOperator.Less
+RuleComparisonOperator.Equal
+StringComparisonOperator.Equal
+CrossTablePlot.MeasureAxis
+CrossTablePlot.RowAxis
+CrossTablePlot.ColumnAxis
+CrossTablePlot.ShowRowGrandTotal
+CrossTablePlot.ShowColumnGrandTotal
+CrossTablePlot.Colorings
+ColorAxis.Expression
+CategoricalAxisBase.Expression
+SummaryTable.Columns
+SummaryTable.AutoAddNewColumns
+SummaryTable.Aggregations
+SummaryTableVisibleColumnCollection.Clear
+SummaryTableVisibleColumnCollection.AddNew(String)
+SummaryTableVisibleColumnCollection.Count
+SummaryTableAggregationCollection.Clear
+SummaryTableAggregationCollection.AddNew(String)
+SummaryTableAggregationCollection.Count
+GraphicalTable.RowAxis
+GraphicalTable.SortInfos
+GraphicalTable.Columns
+Spotfire.Dxp.Application.Visuals.CategoricalAxis.Expression
+GraphicalTableColumnSortInfoCollection.Clear
+GraphicalTableColumnCollection.Clear
+GraphicalTableColumnCollection.AddNew
+GraphicalTableColumn.Title
+GraphicalTableColumn.Width
+GraphicalTableColumn.Visualization
+SparklineMiniatureVisualization.XAxis
+SparklineMiniatureVisualization.YAxis
+SparklineMiniatureVisualization.LineColor
+SparklineXAxis.Expression
+SparklineYAxis.Expression
+SparklineYAxis.IndividualScaling
+CalculatedValueMiniatureVisualization.ValueAxis
+CalculatedValueAxis.Expression
+CalculatedValueAxis.Rules
+CalculatedValueRuleCollection.Clear
+CalculatedValueRuleCollection.Remove(CalculatedValueRule)
+CalculatedValueRuleCollection.AddThresholdRule(RuleComparisonOperator, ConditionValue, Color, FontStyleFlags)
+CalculatedValueRuleCollection.AddStringRule(StringComparisonOperator, ConditionValue, Color, FontStyleFlags)
+CalculatedValueRuleCollection.AddRangeRule(ConditionValue, ConditionValue, Color, FontStyleFlags)
+CalculatedValueRuleCollection.AddTopNRule(Int32, Color, FontStyleFlags)
+CalculatedValueRuleCollection.AddBottomNRule(Int32, Color, FontStyleFlags)
+CalculatedValueRuleCollection.AddExpressionRule(String, Color, FontStyleFlags)
+FontStyleFlags.Regular
+IconMiniatureVisualization.IconAxis
+IconAxis.Expression
+IconAxis.Rules
+IconRuleCollection.Clear
+IconRuleCollection.Remove(IconRule)
+IconRuleCollection.AddThresholdRule(RuleComparisonOperator, ConditionValue, Color, MarkerShape)
+IconRuleCollection.AddStringRule(StringComparisonOperator, ConditionValue, Color, MarkerShape)
+IconRuleCollection.AddRangeRule(ConditionValue, ConditionValue, Color, MarkerShape)
+IconRuleCollection.AddTopNRule(Int32, Color, MarkerShape)
+IconRuleCollection.AddBottomNRule(Int32, Color, MarkerShape)
+IconRuleCollection.AddExpressionRule(String, Color, MarkerShape)
+MarkerShape.ctor(MarkerType)
+MarkerType.Circle
+BulletGraphMiniatureVisualization.ValueAxis
+BulletGraphMiniatureVisualization.ComparativeValueExpression
+BulletGraphMiniatureVisualization.ValueColor
+BulletGraphMiniatureVisualization.ComparativeValueColor
+BulletGraphMiniatureVisualization.ColorRanges
+BulletGraphMiniatureVisualization.ShowColorRanges
+BulletGraphScaleAxis.Expression
+BulletGraphColorRangeCollection.Clear
+BulletGraphColorRangeCollection.AddNew(Color, String)
+BulletGraphColorRange.Expression
+KpiChart.KpiCollection
+KpiCollection.Clear
+KpiCollection.AddNew()
+KpiContent.Title
+KpiContent.Visualization
+KpiVisualization.YAxis
+KpiVisualization.TileAxis
+KpiVisualization.XAxis
+KpiVisualization.ComparativeAxis
+KpiVisualization.SortColumn
+KpiVisualization.ShowSparkline
+KpiYAxis.Expression
+KpiXAxis.Expression
+KpiComparativeAxis.Expression
+KpiSortColumn.Expression
+Axis.Expression

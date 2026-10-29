@@ -1,0 +1,462 @@
+card_version: "1.0"
+unit_id: amine-treating
+unit_class: amine_treating
+service: >
+  Amine gas treating loop: a contactor absorbs H2S and CO2 from the gas into a circulating
+  amine solution, and a regenerator strips the acid gas back out with reboiler heat. The
+  analysable quantities are rich loading, treated gas acid gas content against the contract
+  spec, reboiler duty per unit of solvent circulated, and contactor dP at matched gas rate.
+persona: gas_treating_engineer
+description: >
+  DRAFT CARD, pending SME review. Written from the process reference in this skill
+  (references/unit-reference.md, amine treating). It validates against the engine schema but
+  has never been run against plant data, and every failure mode is marked UNVERIFIED until a
+  process engineer confirms the signatures, onsets and confounders.
+
+  Solvent choice changes the expected behaviour. MDEA is kinetically selective for H2S over
+  CO2, so CO2 slip on an MDEA unit is a design choice rather than a fault. A card calibrated
+  for a DEA unit does not transfer to an MDEA unit without revisiting every band.
+
+  Like any class card it carries no descriptive operating bands. Treated gas specs are
+  contractual and come from the deployment profile, never from this card.
+
+topology:
+  upstream: [inlet_separator, inlet_compression]
+  downstream: [dehydration, ngl_recovery, sulphur_recovery_or_acid_gas_disposal]
+
+roles:
+  - id: inlet_gas_flow
+    description: Sour gas rate into the contactor
+    kind: sensor
+    quantity: flow
+    units: MMscfd
+    limits: {lo: 0}
+    control_role: DV
+    source: "Negative gas rate is not a measurement. The operating range is asset-specific and comes from the calibration overlay."
+
+  - id: design_gas_flow
+    description: Design gas rate of the unit, supplied by the deployment as a constant column
+    kind: manual
+    quantity: flow
+    units: MMscfd
+    limits: {lo: 0}
+    control_role: IND
+    source: >
+      An asset record value, not a measurement. It makes the rate regime scale-free, so the
+      same card bins a small and a large unit the same way. Required: without it the analysis
+      has no rate regime and every comparison would mix operating points.
+
+  - id: inlet_gas_temperature
+    description: Sour gas temperature at the contactor inlet
+    kind: sensor
+    quantity: temperature
+    units: degF
+    control_role: DV
+    source: "Asset-specific range; comes from the overlay."
+
+  - id: inlet_h2s
+    description: H2S content of the sour gas
+    kind: sensor
+    quantity: concentration
+    units: ppmv
+    limits: {lo: 0}
+    control_role: DV
+    required: false
+    source: "Analyser or lab value. Concentration cannot be negative. If this role is lab-sampled, declare it `lab` in a copy of the card so staleness is handled."
+
+  - id: inlet_co2
+    description: CO2 content of the sour gas
+    kind: sensor
+    quantity: concentration
+    units: mol%
+    limits: {lo: 0, hi: 100}
+    control_role: DV
+    required: false
+    source: "A mole fraction lies between 0 and 100 percent by definition."
+
+  - id: treated_gas_h2s
+    description: H2S content of the treated gas
+    kind: sensor
+    quantity: concentration
+    units: ppmv
+    limits: {lo: 0}
+    control_role: CV
+    source: >
+      The sales or downstream spec is contractual and must come from the deployment profile as
+      a normative band. Concentration cannot be negative.
+
+  - id: treated_gas_co2
+    description: CO2 content of the treated gas
+    kind: sensor
+    quantity: concentration
+    units: mol%
+    limits: {lo: 0, hi: 100}
+    control_role: CV
+    required: false
+    source: "Contract or downstream (cryogenic) spec; comes from the profile. A mole fraction lies between 0 and 100 percent."
+
+  - id: contactor_dp
+    description: Differential pressure across the contactor trays or packing
+    kind: sensor
+    quantity: differential_pressure
+    units: psi
+    control_role: IND
+    source: "Scales with gas rate, so it is compared within rate regimes only. Asset-specific range."
+
+  - id: contactor_level
+    description: Liquid level in the contactor sump
+    kind: sensor
+    quantity: level
+    units: percent
+    limits: {lo: 0, hi: 100}
+    control_role: CV
+    required: false
+    source: "A level in percent of span lies between 0 and 100. Held on setpoint by a controller, so low variance is expected."
+
+  - id: lean_amine_temperature
+    description: Lean amine temperature entering the contactor
+    kind: sensor
+    quantity: temperature
+    units: degF
+    control_role: CV
+    source: "Asset-specific range; comes from the overlay."
+
+  - id: lean_amine_flow
+    description: Lean amine circulation rate
+    kind: sensor
+    quantity: flow
+    units: gpm
+    limits: {lo: 0}
+    control_role: MV
+    source: "Circulation is the manipulated variable, not the finding. Negative flow is not a measurement."
+
+  - id: lean_loading
+    description: Acid gas loading of the lean amine
+    kind: lab
+    quantity: loading
+    units: mol/mol
+    limits: {lo: 0}
+    control_role: DV
+    source: "Lab assay. Loading cannot be negative. Set update_interval in the calibration overlay to the site's sampling cadence."
+
+  - id: rich_loading
+    description: Acid gas loading of the rich amine
+    kind: lab
+    quantity: loading
+    units: mol/mol
+    limits: {lo: 0}
+    control_role: IND
+    source: >
+      Lab assay and the corrosion driver. A carbon-steel limit of roughly 0.35 to 0.45 mol/mol
+      is commonly cited but is UNVERIFIED for any asset; take it from the unit's corrosion
+      study and put it in the profile as a normative band.
+
+  - id: amine_strength
+    description: Amine concentration in the circulating solution
+    kind: lab
+    quantity: concentration
+    units: wt%
+    limits: {lo: 0, hi: 100}
+    control_role: DV
+    source: "Lab assay. Design strength depends on the solvent and drifts with the water balance. A mass fraction lies between 0 and 100 percent."
+
+  - id: heat_stable_salts
+    description: Heat stable salt content of the solution
+    kind: lab
+    quantity: concentration
+    units: wt%
+    limits: {lo: 0, hi: 100}
+    control_role: IND
+    required: false
+    source: "Lab assay. A mass fraction lies between 0 and 100 percent."
+
+  - id: rich_amine_regen_inlet_temperature
+    description: Rich amine temperature leaving the lean/rich exchanger toward the regenerator
+    kind: sensor
+    quantity: temperature
+    units: degF
+    control_role: IND
+    required: false
+    source: "Evidences lean/rich exchanger performance. Asset-specific range."
+
+  - id: reboiler_temperature
+    description: Regenerator reboiler temperature
+    kind: sensor
+    quantity: temperature
+    units: degF
+    control_role: CV
+    source: >
+      Solvent specific. Thermal degradation is governed by tube skin temperature, not the bulk
+      value, so take any limit from the solvent supplier and put it in the profile.
+
+  - id: reboiler_duty
+    description: Reboiler heat input
+    kind: calculated
+    quantity: power
+    units: MMBtu/h
+    limits: {lo: 0}
+    control_role: MV
+    source: "Computed in the source system from heating medium flow and temperatures. Negative duty is not a measurement."
+
+  - id: acid_gas_flow
+    description: Acid gas leaving the regenerator overhead
+    kind: sensor
+    quantity: flow
+    units: MMscfd
+    limits: {lo: 0}
+    control_role: IND
+    required: false
+    source: "Needed only for the acid gas balance. Negative flow is not a measurement."
+
+  - id: amine_makeup_flow
+    description: Amine or water makeup to the inventory
+    kind: sensor
+    quantity: flow
+    units: gpm
+    limits: {lo: 0}
+    control_role: IND
+    required: false
+    source: "Makeup that rises without an inventory change evidences solution loss."
+
+derived:
+  - id: feed_rate_pct
+    expr: "100.0 * inlet_gas_flow / design_gas_flow"
+    units: percent
+    description: Gas rate as a percentage of design, the scale-free rate regime
+    source: "Definition."
+
+  - id: lean_amine_approach
+    expr: "lean_amine_temperature - inlet_gas_temperature"
+    units: degF
+    description: Lean amine temperature above the inlet gas temperature
+    source: >
+      Definition. Lean amine below the gas temperature condenses hydrocarbons in the contactor
+      and the unit foams. The rule of thumb that lean amine runs roughly 10 to 15 F above the
+      inlet gas is UNVERIFIED for any asset (process reference, amine treating).
+
+  - id: net_loading
+    expr: "rich_loading - lean_loading"
+    units: mol/mol
+    description: Acid gas picked up per mole of amine circulated
+    source: "Definition."
+
+  - id: reboiler_duty_per_gal
+    expr: "reboiler_duty * 1.0e6 / (lean_amine_flow * 60.0)"
+    units: Btu/gal
+    description: Reboiler heat per gallon of amine circulated
+    source: >
+      Unit conversion (MMBtu/h to Btu/h, gpm to gal/h). The rule of thumb of roughly 1000 to
+      1200 Btu/gal is strongly solvent and loading dependent and is UNVERIFIED for any asset.
+
+  - id: acid_gas_removed
+    expr: "inlet_gas_flow * ((inlet_co2 - treated_gas_co2) / 100.0 + (inlet_h2s - treated_gas_h2s) / 1.0e6)"
+    units: MMscfd
+    description: Acid gas removed from the gas, assuming treated gas rate equals inlet rate
+    source: "Component balance on H2S and CO2. Neglects the volume change of the gas, which is small when acid gas content is low."
+
+invariants:
+  - id: h2s_is_removed
+    kind: inequality
+    expr: "treated_gas_h2s <= inlet_h2s"
+    severity: high
+    source: "Absorption only removes acid gas. Treated gas above inlet means a swapped tag or an analyser fault, not a process event."
+
+  - id: co2_is_removed
+    kind: inequality
+    expr: "treated_gas_co2 <= inlet_co2"
+    severity: high
+    source: "Absorption only removes acid gas. Treated gas above inlet means a swapped tag or an analyser fault."
+
+  - id: rich_above_lean
+    kind: inequality
+    expr: "rich_loading > lean_loading"
+    severity: high
+    source: "The solution picks acid gas up in the contactor. Rich at or below lean means swapped samples or a lab error."
+
+  - id: acid_gas_balance
+    kind: balance
+    expr: "acid_gas_removed == acid_gas_flow"
+    tol: 0.15
+    severity: medium
+    requires_roles: [acid_gas_flow, inlet_h2s, inlet_co2, treated_gas_co2]
+    source: >
+      Acid gas removed from the gas should reappear in the regenerator overhead. This is the
+      identity that verifies the analysers, so check it before concluding anything from
+      either of them. The 15 percent tolerance (acid gas metering, water content of the
+      overhead, hydrocarbon co-absorption) is UNVERIFIED.
+
+confounders:
+  - id: gas_rate_change
+    description: >
+      Gas rate changed, so contactor dP and acid gas pickup moved with it. A rate step moves dP
+      smoothly and does not cost amine.
+    roles: [inlet_gas_flow]
+    test: regime_shift
+    source: "Rate dependence of tray hydraulics (process reference, amine treating)"
+
+  - id: inlet_acid_gas_load
+    description: >
+      More acid gas in the feed raises rich loading and treated gas content at fixed
+      circulation. Exclude it before calling under-stripping or salt accumulation.
+    roles: [inlet_h2s, inlet_co2]
+    test: correlates_with
+    source: "Process reference, amine treating"
+
+  - id: circulation_change
+    description: >
+      An operator change in circulation moves loading, treated gas content and reboiler duty
+      within hours with no change in the solvent or the equipment.
+    roles: [lean_amine_flow]
+    test: step_change
+    source: "Process reference, amine treating"
+
+  - id: inlet_gas_cooling
+    description: >
+      Colder inlet gas (ambient, an upstream cooler change) moves the lean amine approach
+      without any amine-side fault.
+    roles: [inlet_gas_temperature]
+    test: correlates_with
+    source: "Process reference, amine treating"
+
+  - id: lab_staleness
+    description: >
+      Loadings and amine strength are lab assays held constant between samples, so anything
+      computed from them carries a sawtooth that resets at each assay.
+    roles: [lean_loading, rich_loading, amine_strength]
+    test: zero_order_hold
+    source: "Zero-order-hold artifact of merging lab cadence into a faster SCADA frame"
+
+failure_modes:
+  - id: foaming
+    name: Contactor foaming
+    severity: high
+    onset: hours
+    signature:
+      contactor_dp: sharp_up
+      treated_gas_h2s: up
+      amine_makeup_flow: up
+      contactor_level: erratic
+    confounders: [gas_rate_change]
+    discriminators:
+      - "Onset in hours with level instability and amine loss together. A rate step moves dP smoothly and does not cost amine."
+      - "Confirm the dP rise on a second indication before ruling out a transmitter fault."
+      - "Flooding from over-circulation and tray damage produce a similar dP signature; check circulation and the dP history after a rate cut."
+    verify_in_field:
+      - "Take a solution sample and run a foam test; check antifoam injection and inlet separator performance."
+    source: "UNVERIFIED: process reference (amine treating), pending SME review"
+
+  - id: hydrocarbon_condensation
+    name: Hydrocarbon condensation in the contactor
+    severity: high
+    onset: days
+    signature:
+      lean_amine_approach: down
+      contactor_dp: up
+      treated_gas_h2s: up
+    confounders: [inlet_gas_cooling]
+    differentials: [foaming]
+    discriminators:
+      - "The lean amine approach to the inlet gas going negative is the direct evidence, and it precedes the foaming signature."
+    verify_in_field:
+      - "Check the lean amine cooler and its control; look for hydrocarbon in the flash tank."
+    source: "UNVERIFIED: process reference (amine treating), pending SME review"
+
+  - id: heat_stable_salt_accumulation
+    name: Heat stable salt accumulation
+    severity: medium
+    onset: months
+    signature:
+      heat_stable_salts: up
+      amine_strength: down
+      reboiler_duty_per_gal: up
+      treated_gas_h2s: up
+    confounders: [lab_staleness, inlet_acid_gas_load]
+    discriminators:
+      - "Onset in months and a consistent lab trend. Solvent degradation from thermal exposure or oxygen ingress gives a similar picture; both need reclaiming, but oxygen ingress needs the source found."
+    verify_in_field:
+      - "Run a full solvent analysis including heat stable salts and degradation products."
+    source: "UNVERIFIED: process reference (amine treating), pending SME review"
+
+  - id: lean_rich_exchanger_fouling
+    name: Lean/rich exchanger fouling
+    severity: medium
+    onset: months
+    signature:
+      rich_amine_regen_inlet_temperature: down
+      reboiler_duty: up
+      treated_gas_h2s: unchanged
+    confounders: [gas_rate_change, circulation_change]
+    discriminators:
+      - "Which side of the exchanger the approach degrades on separates exchanger fouling from reboiler tube fouling."
+    verify_in_field:
+      - "Compute the exchanger approach at matched circulation; inspect at the next opportunity."
+    source: "UNVERIFIED: process reference (amine treating), pending SME review"
+
+  - id: regenerator_under_stripping
+    name: Regenerator under-stripping
+    severity: high
+    onset: days
+    signature:
+      lean_loading: up
+      treated_gas_h2s: up
+      reboiler_temperature: down
+    confounders: [inlet_acid_gas_load, circulation_change, lab_staleness]
+    differentials: [lean_rich_exchanger_fouling]
+    discriminators:
+      - "Inlet acid gas load is the confounder to exclude first. Under-stripping at constant inlet load is the finding."
+    verify_in_field:
+      - "Check reboiler heating medium supply, reflux rate and regenerator pressure."
+    source: "UNVERIFIED: process reference (amine treating), pending SME review"
+
+  - id: amine_losses
+    name: Amine solution losses
+    severity: medium
+    onset: weeks
+    signature:
+      amine_makeup_flow: up
+      amine_strength: down
+      contactor_dp: unchanged
+    confounders: [lab_staleness]
+    differentials: [foaming]
+    discriminators:
+      - "Losses without a dP signature point to vaporisation or a leak rather than foaming carryover."
+      - "Rule out an unlogged inventory change, drain or sample draw before calling a loss."
+    verify_in_field:
+      - "Reconcile the inventory; check the treated gas knockout and the flash tank for carryover."
+    source: "UNVERIFIED: process reference (amine treating), pending SME review"
+
+regimes:
+  - id: rate_band
+    by: feed_rate_pct
+    method: bin
+    params: {width: 10, units: percent of design}
+
+checks:
+  enabled:
+    - dq_timestamp_regularity
+    - dq_duplicate_series
+    - dq_partial_rows
+    - dq_flatline
+    - dq_zero_order_hold
+    - dq_rail_saturation
+    - dq_missing
+    - phys_range
+    - rel_identity
+    - rel_inequality
+    - stat_regime_drift
+    - stat_changepoint
+    - stat_detector_firing_rate
+    - sme_signature_match
+
+notes: >
+  Draft card generated from the process reference and pending SME review. Not run against
+  plant data. The rate regime bins gas rate at 10 percent of design; that width is a starting
+  choice, not a sourced value.
+
+  Out of scope: sulphur recovery, tail gas treating, solvent chemistry modelling and acid gas
+  injection. Contract specs for treated gas are never written here; they belong in the
+  deployment profile as normative bands with the contract as their source.
+
+  Known limits: the foaming signature uses `contactor_level: erratic`, which the signature
+  matcher detects as a variance ratio. A level controller tuned tightly may hide it, so treat
+  a missing level signature as weak evidence, not as exclusion.

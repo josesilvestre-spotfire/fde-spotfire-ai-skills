@@ -1,0 +1,103 @@
+{
+  "specVersion": 1,
+  "markings": [
+    {"name": "Selected Station", "color": "#F5A623", "default": false}
+  ],
+  "tables": [
+    {
+      "name": "PIPELINE_ROUTE",
+      "source": {"type": "dataFunction", "function": "Build Pipeline Route", "output": "PIPELINE_ROUTE"},
+      "description": "Pipeline segments between consecutive pump stations, west to east: WKB LineStrings (EPSG:4326) with segment midpoints."
+    },
+    {
+      "name": "PIPELINE_VERTICES",
+      "source": {"type": "dataFunction", "function": "Build Pipeline Route", "output": "PIPELINE_VERTICES"},
+      "description": "Pump stations in pipeline order, one row per route vertex."
+    }
+  ],
+  "dataFunctions": [
+    {
+      "name": "Build Pipeline Route",
+      "description": "Joins the pump stations into a pipeline route for the maps (GeoDataFrame segments and a vertex table).",
+      "engine": "python",
+      "script": "datafunctions/build_pipeline_route.py",
+      "inputs": [
+        {"name": "PUMP_DATA", "type": "table",
+         "bind": {"table": "PUMP_DATA", "columns": "*", "limitByFiltering": null, "limitByMarking": null}}
+      ],
+      "outputs": [
+        {"name": "PIPELINE_ROUTE", "type": "table", "target": {"table": "PIPELINE_ROUTE"}},
+        {"name": "PIPELINE_VERTICES", "type": "table", "target": {"table": "PIPELINE_VERTICES"}}
+      ],
+      "refresh": "automatic",
+      "executeAtBuild": true
+    }
+  ],
+  "pages": [
+    {
+      "title": "Station Map",
+      "visuals": [
+        {
+          "id": "pipelineMap",
+          "type": "map",
+          "title": "Pipeline Map",
+          "showTitle": true,
+          "description": "Pump stations sized by average flow and colored by average discharge pressure, on the pipeline route. Mark stations to inspect them on the right.",
+          "table": "PUMP_DATA",
+          "marking": "Selected Station",
+          "legend": {"visible": true},
+          "coloring": {"gradient": [{"at": "min", "color": "#3050EF"}, {"at": "max", "color": "#E94165"}]},
+          "layers": [
+            {"kind": "tile", "title": "Rich reference map", "settings": {"Transparency": 0.3}},
+            {"kind": "feature", "title": "Pipeline Segments", "table": "PIPELINE_ROUTE",
+             "geometry": "[Geometry]", "colorBy": "Sum([Length (km)])",
+             "settings": {"LineFeatureVisualAttributes.LineWidth": 3.0, "LabelVisibility": "None"}},
+            {"kind": "marker", "title": "Segment Midpoints", "table": "PIPELINE_ROUTE",
+             "geometry": "Geometry", "sizeBy": "Sum([Length (km)])",
+             "settings": {"Enabled": false, "MarkerSize": 2.0}},
+            {"kind": "marker", "title": "Pipeline Route", "table": "PIPELINE_VERTICES",
+             "latitude": "[Latitude]", "longitude": "[Longitude]", "lineBy": "<[Route ID]>",
+             "settings": {"LineConnection.OrderAxis.Expression": "Avg([Seq])", "LineConnection.Width": 4.0,
+                          "MarkerSize": 0.0}},
+            {"kind": "marker", "title": "Pump Stations", "table": "PUMP_DATA",
+             "latitude": "Avg([Latitude])", "longitude": "Avg([Longitude])",
+             "colorBy": "Avg([Discharge Pressure (psig)])", "sizeBy": "Avg([Flow Rate (bbl/d)])",
+             "settings": {"MarkerByAxis.Expression": "<[Station]>", "MarkerSize": 8.0,
+                          "LabelColumn.Expression": "First([Station])", "LabelVisibility": "All"}}
+          ],
+          "autoZoom": false,
+          "settings": {"InteractionMode": "Panning", "MarkingMode": "Lasso"}
+        },
+        {
+          "id": "selectedStations",
+          "type": "map",
+          "title": "Selected Stations",
+          "showTitle": true,
+          "description": "The stations marked on the pipeline map that are pumping, on the pipeline. Zooms to the marked stations.",
+          "table": "PUMP_DATA",
+          "marking": null,
+          "limitByMarkings": ["Selected Station"],
+          "emptyMarkingBehavior": "ShowMessage",
+          "limitExpression": "[Flow Rate (bbl/d)] > 0",
+          "useFiltering": false,
+          "legend": {"visible": false},
+          "coloring": {"fixed": "#E94165"},
+          "layers": [
+            {"kind": "tile"},
+            {"kind": "feature", "title": "Pipeline", "table": "PIPELINE_ROUTE", "geometry": "<[Segment ID]>",
+             "settings": {"LineFeatureVisualAttributes.LineWidth": 2.0, "Transparency": 0.5}},
+            {"kind": "marker", "title": "Marked Stations",
+             "latitude": "Avg([Latitude])", "longitude": "Avg([Longitude])",
+             "settings": {"MarkerByAxis.Expression": "<[Station]>", "MarkerSize": 6.0,
+                          "LabelColumn.Expression": "First([Station])", "LabelVisibility": "All"}}
+          ],
+          "autoZoom": true
+        }
+      ],
+      "layout": {"row": [
+        {"visual": "pipelineMap", "weight": 65},
+        {"visual": "selectedStations", "weight": 35}
+      ]}
+    }
+  ]
+}

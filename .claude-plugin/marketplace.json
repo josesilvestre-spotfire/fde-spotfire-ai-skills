@@ -1,0 +1,108 @@
+{
+  "name": "fde-spotfire-ai-skills",
+  "owner": {
+    "name": "josesilvestre-spotfire"
+  },
+  "metadata": {
+    "description": "Spotfire Skills Library (alpha): Agent Skills for building, styling, testing and versioning Spotfire DXPs with Claude Code.",
+    "version": "0.1.0-alpha.1"
+  },
+  "plugins": [
+    {
+      "name": "spotfire-ingest",
+      "source": "./plugins/spotfire-ingest",
+      "description": "Read existing work (app prototypes, Excel calculation workbooks) and write the App Brief, Logic Spec and build spec that the build skills use.",
+      "version": "0.1.0-alpha.1",
+      "category": "Ingest",
+      "keywords": [
+        "spotfire",
+        "ingest",
+        "excel",
+        "prototype",
+        "requirements"
+      ]
+    },
+    {
+      "name": "spotfire-design",
+      "source": "./plugins/spotfire-design",
+      "description": "Decide what a Spotfire analysis must do for its users and how it behaves: App Brief framing, design rules and packaging.",
+      "version": "0.1.0-alpha.1",
+      "category": "Design",
+      "keywords": [
+        "spotfire",
+        "design",
+        "app-brief",
+        "accelerator"
+      ]
+    },
+    {
+      "name": "spotfire-build",
+      "source": "./plugins/spotfire-build",
+      "description": "Produce a Spotfire DXP and its parts through the Spotfire API: generated IronPython builders, data functions, IronPython scripts, styling, visualization mods and action mods.",
+      "version": "0.1.0-alpha.1",
+      "category": "Build",
+      "keywords": [
+        "spotfire",
+        "dxp",
+        "ironpython",
+        "data-functions",
+        "mods",
+        "styling"
+      ]
+    },
+    {
+      "name": "spotfire-testing",
+      "source": "./plugins/spotfire-testing",
+      "description": "Run Spotfire Analyst unattended and test DXPs through the user interface with window screenshots after each step. Windows only.",
+      "version": "0.1.0-alpha.1",
+      "category": "Testing and automation",
+      "keywords": [
+        "spotfire",
+        "testing",
+        "automation",
+        "ui-testing"
+      ]
+    },
+    {
+      "name": "spotfire-version-control",
+      "source": "./plugins/spotfire-version-control",
+      "description": "Update, track, check and compare DXPs with Git: automated data function updates, readable DXP diffs, CI on pull requests and library audits.",
+      "version": "0.1.0-alpha.1",
+      "category": "Version control and CI/CD",
+      "keywords": [
+        "spotfire",
+        "git",
+        "ci",
+        "audit",
+        "data-functions"
+      ]
+    },
+    {
+      "name": "spotfire-reference",
+      "source": "./plugins/spotfire-reference",
+      "description": "Lookups the other skills load when needed: proven Spotfire Analyst behaviour, naming standard, API index generator, Excel function map and the shared App Brief and Logic Spec formats.",
+      "version": "0.1.0-alpha.1",
+      "category": "Reference",
+      "keywords": [
+        "spotfire",
+        "reference",
+        "api",
+        "naming"
+      ]
+    },
+    {
+      "name": "spotfire-domain-context",
+      "source": "./plugins/spotfire-domain-context",
+      "description": "Engineering knowledge for understanding an app's goal and checking its results: process time series analysis, midstream unit knowledge, synthetic process data and analytics models.",
+      "version": "0.1.0-alpha.1",
+      "category": "Domain context",
+      "keywords": [
+        "spotfire",
+        "time-series",
+        "process-engineering",
+        "midstream",
+        "synthetic-data"
+      ]
+    }
+  ]
+}

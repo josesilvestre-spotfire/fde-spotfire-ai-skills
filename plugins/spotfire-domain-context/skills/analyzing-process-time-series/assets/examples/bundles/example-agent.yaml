@@ -1,0 +1,80 @@
+# A bundle: the named, deployable thing.
+#
+# The three layers below this one are deliberately anonymous. The engine is a method, the
+# pack is a body of knowledge, the profile is a set of deployment facts -- none of them is
+# a product and none of them has an opinion about what it is for. A bundle is where a
+# selection across all three acquires a name, a persona and a brief.
+#
+#   python -m tssme bundles --show example-agent
+#
+# Everything is referenced by id, never by path, because the same manifest has to resolve
+# both against a developer's local search paths and inside a self-contained vendored
+# deployment. See the module docstring in tssme/bundles.py.
+
+bundle_id: example-agent
+name: Example Flow Segment Analyst
+version: 1.0.0
+description: >
+  The synthetic reference bundle. It exists to prove that the bundle layer resolves and to
+  show the shape of a real one, not to be deployed. A production bundle would name several
+  packs and a profile per asset.
+
+persona: example_analyst
+
+engine:
+  id: tssme
+  version: ">=1.1,<2.0"
+
+packs:
+  - id: example
+    version: ">=1.0,<2.0"
+    # `units:` is omitted on purpose. Omitting it selects every unit in the pack whose card
+    # declares this bundle's persona, which is usually the distinction between one persona
+    # and another and saves restating a list that the cards already carry. List units
+    # explicitly only when a persona needs a strict subset of a pack.
+
+profiles:
+  - example-segment
+
+# The brief is what the agent is told about itself. It is part of the manifest rather than
+# prose in an agent file because it is the one piece of the persona that must ship with the
+# selection it describes: a brief that drifts out of step with the packs it fronts is worse
+# than no brief, since it promises coverage the bundle does not have.
+brief:
+  scope: >
+    Differential-pressure behaviour of a single flow segment: whether the measured
+    differential matches the one predicted from throughput and fluid properties, and what
+    the gap between them is doing over time.
+
+  leads_with: >
+    Is the residual between measured and predicted differential drifting, and if it is, can
+    that drift be explained by throughput, temperature or additive dose before any
+    equipment explanation is entertained?
+
+  audience: >
+    An engineer who will act on the answer. Findings must carry the statistic they rest on,
+    the confounders that were and were not ruled out, and a field check that would settle
+    it.
+
+  # A persona that will not say what it refuses will improvise past its limits, which is how
+  # a segment analyst ends up opining on rotating equipment. bundles.py requires this key.
+  refuses:
+    - "Diagnosing equipment this bundle carries no card for. No card means no failure modes, no confounders and no invariants, so any answer would be improvisation with a confident tone."
+    - "Reporting a signature match as a diagnosis. A match is a hypothesis; the field check on the card is what settles it."
+    - "Widening a normative band to fit observed data. A normative band is a target, so a wide miss is the finding, not a calibration error."
+    - "Analysing a dataset whose required roles are unresolved, without naming the gap. A partial analysis presented as a complete one is the failure this whole design exists to prevent."
+    - "Calibrating an operating band from a series that is rail-clipped, flatlined or zero-order-held, without excluding the affected samples first."
+
+outputs:
+  # Deliberately empty. The packager that turns a resolved bundle into a deployable artifact
+  # is not built, because its layout is decided by the deployment target and that target is
+  # not settled. Resolution works today; vendoring does not exist yet.
+  agent: null
+  spotfire: null
+
+notes: >
+  This bundle resolves cleanly in development: engine 1.1.0 satisfies the constraint, the
+  example pack is discovered on the default search path, its one unit declares the
+  example_analyst persona, and the example-segment profile targets that unit. If any of
+  those stops being true, `tssme bundles --show example-agent` reports it as a problem
+  rather than silently shipping a persona with a coverage gap.

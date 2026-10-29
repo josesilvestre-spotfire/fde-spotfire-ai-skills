@@ -1,0 +1,19 @@
+{
+    "name": "pump-actions",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Action mod for a pump analysis (Spotfire 15.0, action API 2.5). Spotfire loads build/*.js as is; there is no build step.",
+    "scripts": {
+        "check": "tsc -p tsconfig.json",
+        "test": "node tests/run.mjs",
+        "server": "mods-dev-server . --allow-project-root true"
+    },
+    "devDependencies": {
+        "@spotfire/mods-api": "~2.5.0",
+        "@spotfire/mods-dev-server": "^1.3.0",
+        "typescript": "^5.9.3"
+    },
+    "engines": {
+        "node": ">=22.12.0"
+    }
+}

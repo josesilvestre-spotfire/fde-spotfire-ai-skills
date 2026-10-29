@@ -1,0 +1,110 @@
+{
+  "specVersion": 1,
+  "app": {
+    "name": "Pump Station Monitor",
+    "description": "Fleet health for midstream pump stations: flow, pressure, motor load and recent events.",
+    "keywords": ["pumps", "midstream", "operations"],
+    "theme": {
+      "base": "DarkSfx",
+      "customStyles": {
+        "general": {
+          "baseTheme": "Dark",
+          "baseThemeSfx": "DarkSfx",
+          "font-family": "Roboto",
+          "accentColor": "rgb(48, 80, 239)",
+          "activePageTabBackgroundColor": "rgb(51, 60, 102)",
+          "visualizationMargin": 4
+        },
+        "rules": [
+          {"containmentNode": "visualization-area", "box": {"background-color": "rgb(20, 22, 30)", "padding": 4}},
+          {"containmentNode": "visual", "box": {"background-color": "rgb(30, 33, 45)", "padding": 6, "border-radius": 4}},
+          {"containmentNode": "visual-title", "box": {"font-size": 12, "font-weight": "Bold", "text-align": "Left"}},
+          {"containmentNode": "scale-area", "box": {"font-size": 10}}
+        ]
+      }
+    },
+    "pageNavigation": "Links",
+    "canvas": {"width": 1920, "height": 1080, "fitToWindow": true}
+  },
+  "defaultTable": "PUMP_DATA",
+  "filteringSchemes": [
+    {"name": "Detail Filters", "default": false}
+  ],
+  "pages": [
+    {
+      "title": "Fleet Overview",
+      "visible": true,
+      "filterPanel": false,
+      "detailsOnDemand": false,
+      "filteringScheme": null,
+      "visuals": [
+        {
+          "id": "fleetHeader", "type": "textArea", "title": "Fleet Header", "showTitle": false,
+          "html": "<div style=\"padding:8px;\"><h2 style=\"margin:0;color:#FFFFFF;\">Pump Station Monitor</h2><p style=\"margin:4px 0 0 0;color:#C8CDE0;\">Flow, pressure and motor load across the fleet, with the latest events.</p></div>",
+          "css": "", "js": [], "controls": {}
+        },
+        {
+          "id": "fleetTrend", "type": "lineChart", "title": "Discharge and Suction Pressure",
+          "x": "[Timestamp]",
+          "y": ["Avg([Discharge Pressure (psig)])", "Avg([Suction Pressure (psig)])"]
+        },
+        {
+          "id": "flowByPump", "type": "barChart", "title": "Average Flow by Pump",
+          "x": "<[Pump ID]>", "y": "Avg([Flow Rate (bbl/d)])", "colorBy": "<[Station]>"
+        },
+        {
+          "id": "flowVsCurrent", "type": "scatterPlot", "title": "Flow vs Motor Current",
+          "x": "[Flow Rate (bbl/d)]", "y": "[Motor Current (A)]", "colorBy": "<[Status]>"
+        },
+        {
+          "id": "recentEvents", "type": "table", "title": "Recent Events", "table": "PUMP_EVENTS",
+          "columns": ["Start", "Pump ID", "Severity", "Description"],
+          "sort": [{"column": "Start", "descending": true}]
+        }
+      ],
+      "layout": {"column": [
+        {"visual": "fleetHeader", "weight": 12},
+        {"row": [
+          {"visual": "fleetTrend", "weight": 64},
+          {"column": [{"visual": "flowByPump"}, {"visual": "flowVsCurrent"}], "weight": 36}
+        ], "weight": 58},
+        {"visual": "recentEvents", "weight": 30}
+      ]}
+    },
+    {
+      "title": "Pump Detail",
+      "visible": true,
+      "filterPanel": true,
+      "detailsOnDemand": true,
+      "filteringScheme": "Detail Filters",
+      "visuals": [
+        {
+          "id": "pumpTrend", "type": "lineChart", "title": "Flow Rate by Pump",
+          "x": "[Timestamp]", "y": "Avg([Flow Rate (bbl/d)])", "colorBy": "<[Pump ID]>"
+        }
+      ]
+    },
+    {
+      "title": "Event Log",
+      "visible": false,
+      "filterPanel": false,
+      "detailsOnDemand": false,
+      "filteringScheme": null,
+      "visuals": [
+        {
+          "id": "eventTable", "type": "table", "title": "All Events", "table": "PUMP_EVENTS",
+          "columns": ["Event ID", "Pump ID", "Start", "End", "Severity", "Description"]
+        },
+        {
+          "id": "eventsBySeverity", "type": "barChart", "title": "Events by Severity", "table": "PUMP_EVENTS",
+          "x": "<[Severity]>", "y": "Count([Event ID])"
+        }
+      ],
+      "layout": {"row": [
+        {"visual": "eventTable", "weight": 70},
+        {"visual": "eventsBySeverity", "weight": 30}
+      ]}
+    }
+  ],
+  "activePage": "Fleet Overview"
+}

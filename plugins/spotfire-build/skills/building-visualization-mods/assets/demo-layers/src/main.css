@@ -1,0 +1,122 @@
+/*
+ * Layer demo - card layout. The text and background colors and the font
+ * come from the Spotfire theme at run time (main.js sets them on the root
+ * element); the values below are the light defaults.
+ */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.demo {
+    --fg: #333333;
+    --bg: #FFFFFF;
+    --line: rgba(128, 128, 128, 0.35);
+    --mark: #E94165;
+    position: absolute;
+    inset: 0;
+    overflow: auto;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    color: var(--fg);
+    background: var(--bg);
+    font-family: "Segoe UI", sans-serif;
+    font-size: 12px;
+}
+
+.demo-heading {
+    margin: 0 0 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.demo-empty,
+.demo-note,
+.demo-error {
+    margin: 4px 0;
+    opacity: 0.8;
+}
+
+.demo-error {
+    color: var(--mark);
+}
+
+.demo-card {
+    margin: 0 0 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+}
+
+.demo-card-head {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+}
+
+.demo-card-title {
+    font-weight: 600;
+}
+
+.demo-badge {
+    padding: 0 6px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 11px;
+}
+
+.demo-meta {
+    margin: 2px 0 6px;
+    opacity: 0.8;
+}
+
+.demo-chart {
+    display: block;
+    width: 100%;
+    height: 90px;
+}
+
+.demo-grid {
+    stroke: var(--line);
+    stroke-width: 1;
+}
+
+.demo-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 4px;
+    font-size: 11px;
+}
+
+.demo-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 3px;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+.demo-records {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.demo-records td {
+    padding: 2px 6px;
+    border-top: 1px solid var(--line);
+    white-space: nowrap;
+}
+
+.demo-records tr.is-clickable {
+    cursor: pointer;
+}
+
+.demo-records tr.is-marked td {
+    color: var(--mark);
+    font-weight: 600;
+}

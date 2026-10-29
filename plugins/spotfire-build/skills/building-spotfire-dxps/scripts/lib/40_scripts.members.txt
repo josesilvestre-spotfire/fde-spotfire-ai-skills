@@ -1,0 +1,50 @@
+# Public Spotfire members touched by lib/40_scripts.py
+# check: python scripts/sfapi.py has --stdin < lib/40_scripts.members.txt
+Document.ScriptManager
+Document.Data
+ScriptManager.GetScripts()
+ScriptManager.GetAllScriptsWithName(String)
+ScriptManager.AddScriptDefinition(ScriptDefinition)
+ScriptManager.Replace(ScriptDefinition, ScriptDefinition)
+ScriptDefinition.Create(String, String, String, ScriptLanguage, ScriptParameterCollection, Boolean)
+ScriptDefinition.IsEquivalentTo(ScriptDefinition)
+ScriptDefinition.Name
+ScriptDefinition.Language
+ScriptDefinition.Parameters
+ScriptLanguage.IronPython3
+ScriptLanguage.JavaScript
+ScriptLanguage.Equals(Object)
+ScriptParameter.ctor(String, String, ScriptParameterType)
+ScriptParameter.Name
+ScriptParameterCollection.ctor(IEnumerable<ScriptParameter>)
+ScriptParameterCollection.Count
+ScriptParameterCollection.GetEnumerator()
+ScriptParameterType.String
+ScriptParameterType.Integer
+ScriptParameterType.LongInteger
+ScriptParameterType.Real
+ScriptParameterType.SingleReal
+ScriptParameterType.Boolean
+ScriptParameterType.Date
+ScriptParameterType.DateTime
+ScriptParameterType.Time
+ScriptParameterType.TimeSpan
+ScriptParameterType.Currency
+ScriptParameterType.Page
+ScriptParameterType.Visualization
+ScriptParameterType.DataTable
+HtmlTextArea
+HtmlTextArea.Scripts
+HtmlTextArea.Title
+HtmlTextAreaScriptCollection.Count
+HtmlTextAreaScriptCollection.Item
+HtmlTextAreaScriptCollection.RemoveAt(Int32)
+HtmlTextAreaScriptCollection.Add(HtmlTextAreaScript)
+HtmlTextAreaScript.ctor(ScriptDefinition, IDictionary<String, String>)
+HtmlTextAreaScript.ScriptDefinition
+Visual.As
+# trigger pre-check: B.prop() in 00_core, then the canonical property name
+DataManager.Properties
+DataPropertyRegistry.TryGetProperty(DataPropertyClass, String, out DataProperty)
+DataPropertyClass.Document
+DataProperty.Name

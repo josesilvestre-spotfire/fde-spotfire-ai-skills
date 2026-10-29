@@ -1,0 +1,32 @@
+<div class="app-ta">
+  <table class="table1" cellspacing="0" cellpadding="2">
+    <colgroup><col style="width: 50%" /><col style="width: 50%" /></colgroup>
+    <tbody>
+      <tr>
+        <td colspan="2"><h2 class="subheading-lg">Analysis settings</h2></td>
+      </tr>
+      <tr>
+        <td class="sectiontd"><h3 class="subheading">Efficiency target (%)
+          <span class="tooltip-container"><i class="info-icon">i</i><span class="tooltip">Pumps whose mean efficiency is below this value are listed as below target.</span></span>
+        </h3></td>
+        <td class="sectiontd leftAlignedInputField">{{control:inputTargetEfficiency}}</td>
+      </tr>
+      <tr>
+        <td><h3 class="subheading">Pump</h3></td>
+        <td>{{control:selectPump}}</td>
+      </tr>
+      <tr>
+        <td><h3 class="subheading">Minimum readings</h3></td>
+        <td>{{control:sliderMinPoints}}</td>
+      </tr>
+      <tr>
+        <td class="key-btn">{{control:runAnalysis}}</td>
+        <td class="iso-btn">{{control:openDetail}}</td>
+      </tr>
+      <tr>
+        <td class="sav-btn">{{control:saveSettings}}</td>
+        <td class="del-btn">{{control:resetSettings}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

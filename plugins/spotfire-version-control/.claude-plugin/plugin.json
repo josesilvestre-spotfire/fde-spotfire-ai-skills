@@ -1,0 +1,15 @@
+{
+  "name": "spotfire-version-control",
+  "version": "0.1.0-alpha.1",
+  "description": "Update, track, check and compare DXPs with Git: automated data function updates, readable DXP diffs, CI on pull requests and library audits.",
+  "author": {
+    "name": "josesilvestre-spotfire"
+  },
+  "keywords": [
+    "spotfire",
+    "git",
+    "ci",
+    "audit",
+    "data-functions"
+  ]
+}

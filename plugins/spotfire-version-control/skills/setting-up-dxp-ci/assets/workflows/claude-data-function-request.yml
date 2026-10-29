@@ -1,0 +1,49 @@
+# Headless Claude Code run for a data function change request.
+# Template from the setting-up-dxp-ci skill. Not yet tested. Copy it to
+# .github/workflows/ and replace every <...> placeholder.
+#
+# A person starts the workflow with a request (Actions > Run workflow).
+# On a self-hosted Windows runner labelled "spotfire", with Spotfire Analyst
+# signed in, the runner analysis built for the runner's account and Claude Code
+# installed, Claude Code:
+#   1. creates a branch, edits the script, applies it in a staging copy and
+#      writes the report (CLAUDE.md, section "Headless runs"),
+#   2. commits the script and the report, pushes the branch and opens a pull
+#      request with the report.
+# It never promotes. The pull request review is the approval; after it, a
+# person promotes the validated change with tools/promote.py and commits the
+# analysis (the data-functions check then passes).
+name: claude-data-function-request
+
+on:
+  workflow_dispatch:
+    inputs:
+      request:
+        description: "The change, for example: add the sample standard deviation to <Function Name>"
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  request:
+    runs-on: [self-hosted, windows, spotfire]
+    env:
+      DXP_WORKSPACE: <runner workspace folder that holds runner\runner.dxp>
+      CLAUDE_HEADLESS: "1"
+      GH_TOKEN: ${{ github.token }}
+      ANTHROPIC_API_KEY: ${{ secrets.<name of the secret that holds the key> }}
+      REQUEST: ${{ inputs.request }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Claude Code
+        shell: pwsh
+        run: |
+          claude -p --permission-mode auto --output-format json "$env:REQUEST" |
+            Tee-Object -FilePath claude-run.json
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: claude-run
+          path: claude-run.json

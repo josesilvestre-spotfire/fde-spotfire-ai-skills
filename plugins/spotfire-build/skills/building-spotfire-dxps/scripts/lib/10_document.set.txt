@@ -1,0 +1,7 @@
+PageCollection.NavigationMode
+VisualizationAreaSize.Size
+VisualizationAreaSize.FitToWindow
+Page.Title
+Document.ActivePageReference
+DocumentProperties.Description
+DocumentProperties.Keywords

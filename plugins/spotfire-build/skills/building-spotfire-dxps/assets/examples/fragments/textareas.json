@@ -1,0 +1,384 @@
+{
+  "properties": [
+    {
+      "name": "SelectedPumpId",
+      "type": "String",
+      "default": "P-101",
+      "description": "Pump shown in the control panel",
+      "listValued": false
+    },
+    {
+      "name": "ViewMode",
+      "type": "String",
+      "default": "H",
+      "description": "Trend resolution: H hourly, D daily"
+    },
+    {
+      "name": "FocusStation",
+      "type": "String",
+      "default": "North Station",
+      "description": "Station highlighted in the control panel"
+    },
+    {
+      "name": "SelectedSeverities",
+      "type": "String",
+      "default": [
+        "High",
+        "Medium"
+      ],
+      "description": "Event severities included in the event views",
+      "listValued": true
+    },
+    {
+      "name": "TrendMetric",
+      "type": "String",
+      "default": "Flow",
+      "description": "Metric shown in the pump trend: Flow, Pressure or Current"
+    },
+    {
+      "name": "ShowEventMarkers",
+      "type": "Boolean",
+      "default": true,
+      "description": "Draw event markers on the pump trend"
+    },
+    {
+      "name": "TrendWindowDays",
+      "type": "Integer",
+      "default": 30,
+      "description": "Days shown in the trend charts"
+    },
+    {
+      "name": "AlertThreshold",
+      "type": "Real",
+      "default": 1200.0,
+      "description": "Discharge pressure alert limit (psig)"
+    },
+    {
+      "name": "OperatorNote",
+      "type": "String",
+      "default": "",
+      "description": "Free-text note from the operator"
+    },
+    {
+      "name": "OpenEventCount",
+      "type": "Integer",
+      "default": 0,
+      "description": "Open events of the selected pump (output of Count Open Pump Events)"
+    }
+  ],
+  "dataFunctions": [
+    {
+      "name": "Count Open Pump Events",
+      "description": "Counts the events of the selected pump that have no end time.",
+      "engine": "python",
+      "script": "datafunctions/count_open_pump_events.py",
+      "inputs": [
+        {
+          "name": "PUMP_EVENTS",
+          "type": "table",
+          "bind": {
+            "table": "PUMP_EVENTS",
+            "columns": "*",
+            "limitByFiltering": null,
+            "limitByMarking": null
+          }
+        },
+        {
+          "name": "SelectedPumpId",
+          "type": "value",
+          "dataTypes": [
+            "String"
+          ],
+          "bind": {
+            "property": "SelectedPumpId"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "OpenEventCount",
+          "type": "value",
+          "target": {
+            "property": "OpenEventCount"
+          }
+        }
+      ],
+      "refresh": "manual",
+      "executeAtBuild": true
+    }
+  ],
+  "scripts": [
+    {
+      "name": "Open Panel Detail",
+      "description": "Sets the trend metric, then opens the page passed by the caller.",
+      "code": "# Open Panel Detail: set the trend metric, then open the page passed by the caller.\nDocument.Properties[\"TrendMetric\"] = metric\nDocument.ActivePageReference = targetPage\n",
+      "parameters": [
+        {
+          "name": "targetPage",
+          "type": "Page",
+          "description": "Page to open"
+        },
+        {
+          "name": "metric",
+          "type": "String",
+          "description": "Trend metric to show"
+        }
+      ],
+      "transaction": true
+    },
+    {
+      "name": "Focus Panel Events",
+      "description": "Makes the visualization passed by the caller the active visual of the page.",
+      "code": "# Focus Panel Events: make the visualization passed by the caller the active visual.\nDocument.ActivePageReference.ActiveVisualReference = target\n",
+      "parameters": [
+        {
+          "name": "target",
+          "type": "Visualization",
+          "description": "Visualization to focus"
+        }
+      ],
+      "transaction": true
+    },
+    {
+      "name": "Clear Operator Note",
+      "description": "Empties the operator note.",
+      "code": "# Clear Operator Note: empty the note field.\nDocument.Properties[\"OperatorNote\"] = \"\"\n",
+      "parameters": [],
+      "transaction": true
+    }
+  ],
+  "pages": [
+    {
+      "title": "Pump Control Panel",
+      "visible": true,
+      "filterPanel": false,
+      "detailsOnDemand": false,
+      "filteringScheme": null,
+      "visuals": [
+        {
+          "id": "panelEvents",
+          "type": "table",
+          "title": "Pump Events",
+          "table": "PUMP_EVENTS",
+          "columns": [
+            "Event ID",
+            "Pump ID",
+            "Start",
+            "End",
+            "Severity",
+            "Description"
+          ],
+          "sort": [
+            {
+              "column": "Start",
+              "descending": true
+            }
+          ]
+        },
+        {
+          "id": "panelControls",
+          "type": "textArea",
+          "title": "Pump Controls",
+          "showTitle": false,
+          "html": "<div class=\"pcp-panel\"><div class=\"pcp-title\">Pump controls</div><div class=\"pcp-field\"><div class=\"pcp-label\">Pump</div>{{control:pumpSelect}}</div><div class=\"pcp-field\"><div class=\"pcp-label\">Resolution</div>{{control:viewMode}}</div><div class=\"pcp-field\"><div class=\"pcp-label\">Focus station</div>{{control:stationList}}</div><div class=\"pcp-field\"><div class=\"pcp-label\">Event severities</div>{{control:severityList}}</div><div class=\"pcp-field\"><div class=\"pcp-label\">Trend metric</div>{{control:metricRadio}}</div><div class=\"pcp-field\"><div class=\"pcp-label\">Show event markers</div>{{control:eventMarkers}}</div><div class=\"pcp-field\"><div class=\"pcp-label\">Trend window (days)</div>{{control:windowSlider}}</div><div class=\"pcp-field\"><div class=\"pcp-label\">Alert threshold (psig)</div>{{control:thresholdInput}}</div><div class=\"pcp-field\"><div class=\"pcp-label\">Operator note</div>{{control:noteInput}}{{control:clearNote}}</div><div class=\"pcp-field\"><div class=\"pcp-label\">Open events</div><span id=\"pcp-open-events\" class=\"pcp-kpi\">{{control:openEvents}}</span>{{control:refreshEvents}}</div><div class=\"pcp-actions\">{{control:openDetail}}{{control:morningReview}}</div><p>{{control:focusEvents}} &#183; {{control:toDetail}}</p></div>",
+          "css": "html/pump_control_panel.css",
+          "js": [
+            "html/Highlight Open Events.js"
+          ],
+          "controls": {
+            "pumpSelect": {
+              "kind": "dropdown",
+              "property": "SelectedPumpId",
+              "values": {
+                "column": {
+                  "table": "PUMP_DATA",
+                  "column": "Pump ID"
+                }
+              }
+            },
+            "viewMode": {
+              "kind": "dropdown",
+              "property": "ViewMode",
+              "values": {
+                "fixed": [
+                  {
+                    "text": "Hourly",
+                    "value": "H"
+                  },
+                  {
+                    "text": "Daily",
+                    "value": "D"
+                  }
+                ]
+              }
+            },
+            "stationList": {
+              "kind": "listbox",
+              "property": "FocusStation",
+              "values": {
+                "column": {
+                  "table": "PUMP_DATA",
+                  "column": "Station"
+                }
+              }
+            },
+            "severityList": {
+              "kind": "multiSelectListbox",
+              "property": "SelectedSeverities",
+              "values": {
+                "fixed": [
+                  {
+                    "text": "High",
+                    "value": "High"
+                  },
+                  {
+                    "text": "Medium",
+                    "value": "Medium"
+                  },
+                  {
+                    "text": "Low",
+                    "value": "Low"
+                  }
+                ]
+              }
+            },
+            "metricRadio": {
+              "kind": "radio",
+              "property": "TrendMetric",
+              "values": {
+                "fixed": [
+                  {
+                    "text": "Flow rate",
+                    "value": "Flow"
+                  },
+                  {
+                    "text": "Discharge pressure",
+                    "value": "Pressure"
+                  },
+                  {
+                    "text": "Motor current",
+                    "value": "Current"
+                  }
+                ]
+              }
+            },
+            "eventMarkers": {
+              "kind": "checkbox",
+              "property": "ShowEventMarkers"
+            },
+            "windowSlider": {
+              "kind": "slider",
+              "property": "TrendWindowDays",
+              "min": 7,
+              "max": 365,
+              "step": 1
+            },
+            "thresholdInput": {
+              "kind": "input",
+              "property": "AlertThreshold"
+            },
+            "noteInput": {
+              "kind": "multilineInput",
+              "property": "OperatorNote"
+            },
+            "clearNote": {
+              "kind": "button",
+              "label": "Clear Note",
+              "script": "Clear Operator Note",
+              "args": {}
+            },
+            "openEvents": {
+              "kind": "label",
+              "property": "OpenEventCount"
+            },
+            "refreshEvents": {
+              "kind": "button",
+              "label": "Refresh Open Events",
+              "action": {
+                "refreshDataFunction": "Count Open Pump Events"
+              }
+            },
+            "openDetail": {
+              "kind": "button",
+              "label": "Pressure Detail",
+              "script": "Open Panel Detail",
+              "args": {
+                "targetPage": "Pump Panel Detail",
+                "metric": "Pressure"
+              }
+            },
+            "morningReview": {
+              "kind": "button",
+              "label": "Morning Review",
+              "action": {
+                "applyBookmark": "Morning Review"
+              }
+            },
+            "focusEvents": {
+              "kind": "link",
+              "label": "Focus event table",
+              "script": "Focus Panel Events",
+              "args": {
+                "target": "panelEvents"
+              }
+            },
+            "toDetail": {
+              "kind": "link",
+              "label": "Pump panel detail",
+              "action": {
+                "gotoPage": "Pump Panel Detail"
+              }
+            }
+          }
+        }
+      ],
+      "layout": {
+        "row": [
+          {
+            "visual": "panelControls",
+            "weight": 24
+          },
+          {
+            "visual": "panelEvents",
+            "weight": 76
+          }
+        ]
+      }
+    },
+    {
+      "title": "Pump Panel Detail",
+      "visible": true,
+      "filterPanel": false,
+      "detailsOnDemand": false,
+      "filteringScheme": null,
+      "visuals": [
+        {
+          "id": "panelDetail",
+          "type": "textArea",
+          "title": "Panel Navigation",
+          "showTitle": true,
+          "html": "<div class=\"pcp-panel\"><div class=\"pcp-title\">Pump panel detail</div><p>Selected pump: <span class=\"pcp-value\">{{control:pumpLabel}}</span></p><p>Trend metric: <span class=\"pcp-value\">{{control:metricLabel}}</span></p><p>{{control:backLink}}</p></div>",
+          "css": "html/pump_control_panel.css",
+          "js": [],
+          "controls": {
+            "pumpLabel": {
+              "kind": "label",
+              "property": "SelectedPumpId"
+            },
+            "metricLabel": {
+              "kind": "label",
+              "property": "TrendMetric"
+            },
+            "backLink": {
+              "kind": "link",
+              "label": "Back to the control panel",
+              "action": {
+                "gotoPage": "Pump Control Panel"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

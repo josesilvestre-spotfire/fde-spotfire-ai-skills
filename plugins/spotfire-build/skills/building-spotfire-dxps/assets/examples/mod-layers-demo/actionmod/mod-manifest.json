@@ -1,0 +1,29 @@
+{
+    "apiVersion": "2.5",
+    "version": "1.0.0",
+    "type": "action",
+    "name": "Layer Demo Actions",
+    "id": "demo-layers-actions",
+    "description": "Actions of the Mod Layers Demo: show the next asset in the layers.",
+    "capabilities": [],
+    "icon": "icon.svg",
+    "scripts": [
+        {
+            "id": "next-asset",
+            "name": "Next asset",
+            "description": "Writes the asset after the current one into ViewAsset, so every layer of the visual shows that asset.",
+            "icon": "icons/next-asset.svg",
+            "file": "build/next-asset.js",
+            "entryPoint": "nextAsset",
+            "wrapInTransaction": true,
+            "parameters": [
+                {
+                    "name": "Assets",
+                    "displayName": "Assets",
+                    "description": "Comma-separated assets to step through, for example Pump A,Pump B.",
+                    "type": "String"
+                }
+            ]
+        }
+    ]
+}

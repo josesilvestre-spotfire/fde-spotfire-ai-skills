@@ -1,0 +1,78 @@
+# DXP sync: checks on every pull request, writes merged scripts into the DXPs.
+# Template from the setting-up-dxp-ci skill. Copy it to .github/workflows/ and
+# replace every <...> placeholder.
+#
+# validate  every pull request, on a GitHub-hosted runner: dxpkit.yaml and the
+#           Python syntax of every tracked script. Needs no access to the DXPs.
+# status    every pull request, on the self-hosted runner labelled "spotfire"
+#           that can read the DXP folders. "dxp push --dry-run" passes when the
+#           pull request only changes scripts in Git, and fails when a DXP was
+#           edited in Spotfire (spotfire ahead, conflict), is missing or is
+#           untracked.
+# push      merge to the default branch, on the same runner: writes the merged
+#           scripts into the DXPs and commits dxpkit.lock. A pushed function
+#           opens untrusted until someone trusts it in Analyst
+#           (File > Manage trust > Review > Trust, refresh, save).
+#
+# Repository variable DXPKIT_PIP: the argument pip uses to install dxpkit
+# from its source. dxpkit is not distributed with the skills library.
+# Runner environment: every variable dxpkit.yaml uses (for example ANALYSES),
+# and dxpkit installed for the runner's account.
+name: dxp-sync
+
+on:
+  pull_request:
+  push:
+    branches: [main]   # your default branch
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dxpkit
+        shell: bash
+        env:
+          DXPKIT_PIP: ${{ vars.DXPKIT_PIP }}
+        run: |
+          if [ -z "$DXPKIT_PIP" ]; then
+            echo "Set the repository variable DXPKIT_PIP (how pip installs dxpkit)." >&2
+            exit 1
+          fi
+          python -m pip install "$DXPKIT_PIP"
+      - run: dxp validate
+
+  status:
+    if: github.event_name == 'pull_request'
+    needs: validate
+    runs-on: [self-hosted, spotfire]
+    steps:
+      - uses: actions/checkout@v4
+      - run: dxp push --dry-run
+
+  push:
+    if: github.event_name == 'push'
+    needs: validate
+    runs-on: [self-hosted, spotfire]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: dxp push
+      - name: Commit dxpkit.lock
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          if [ -n "$(git status --porcelain -- dxpkit.lock)" ]; then
+            git config user.name "<bot name>"
+            git config user.email "<bot e-mail>"
+            git add dxpkit.lock
+            git commit -m "[skip ci] Update dxpkit.lock"
+            git push
+          fi

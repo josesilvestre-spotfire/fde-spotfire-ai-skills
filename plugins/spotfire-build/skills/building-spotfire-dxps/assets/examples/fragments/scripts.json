@@ -1,0 +1,262 @@
+{
+  "properties": [
+    {
+      "name": "SelectedPumpId",
+      "type": "String",
+      "default": "P-101",
+      "description": "Pump shown in the status panel"
+    },
+    {
+      "name": "AlertThreshold",
+      "type": "Real",
+      "default": 1200.0,
+      "description": "Discharge pressure alert limit (psig)"
+    },
+    {
+      "name": "TrendWindowHours",
+      "type": "Integer",
+      "default": 24,
+      "description": "Hours of history shown in trends"
+    },
+    {
+      "name": "ShowEvents",
+      "type": "Boolean",
+      "default": true,
+      "description": "Overlay pump events on trends"
+    },
+    {
+      "name": "WindowStart",
+      "type": "DateTime",
+      "default": "2026-01-01T00:00:00",
+      "description": "Start of the analysis window"
+    },
+    {
+      "name": "StatusMessage",
+      "type": "String",
+      "default": "",
+      "description": "Status line written by scripts and property triggers"
+    }
+  ],
+  "scripts": [
+    {
+      "name": "Select Pump",
+      "description": "Shows another pump in the status panel.",
+      "code": "# Select Pump: show another pump in the status panel.\nDocument.Properties[\"SelectedPumpId\"] = pumpId\n",
+      "parameters": [
+        {
+          "name": "pumpId",
+          "type": "String",
+          "description": "Pump ID to select"
+        }
+      ],
+      "transaction": true
+    },
+    {
+      "name": "Reset Pump Selection",
+      "description": "Selects the first pump of the fleet again.",
+      "code": "# Reset Pump Selection: back to the first pump of the fleet.\nDocument.Properties[\"SelectedPumpId\"] = \"P-101\"\n",
+      "parameters": [],
+      "transaction": true
+    },
+    {
+      "name": "Set Alert Threshold",
+      "description": "Sets the discharge pressure alert limit.",
+      "code": "# Set Alert Threshold: discharge pressure limit in psig.\nDocument.Properties[\"AlertThreshold\"] = threshold\n",
+      "parameters": [
+        {
+          "name": "threshold",
+          "type": "Real",
+          "description": "Alert limit (psig)"
+        }
+      ],
+      "transaction": true
+    },
+    {
+      "name": "Set Trend Window",
+      "description": "Sets trend length, event overlay and window start in one call.",
+      "code": "# Set Trend Window: trend length, event overlay and window start in one call.\nDocument.Properties[\"TrendWindowHours\"] = hours\nDocument.Properties[\"ShowEvents\"] = showEvents\nDocument.Properties[\"WindowStart\"] = windowStart\n",
+      "parameters": [
+        {
+          "name": "hours",
+          "type": "Integer",
+          "description": "Hours of history"
+        },
+        {
+          "name": "showEvents",
+          "type": "Boolean",
+          "description": "Overlay pump events"
+        },
+        {
+          "name": "windowStart",
+          "type": "DateTime",
+          "description": "Window start"
+        }
+      ],
+      "transaction": false
+    },
+    {
+      "name": "Update Status Message",
+      "description": "Rewrites the status line; runs when SelectedPumpId or AlertThreshold changes.",
+      "code": "# Update Status Message: property trigger of SelectedPumpId and AlertThreshold.\npump = Document.Properties[\"SelectedPumpId\"]\nlimit = Document.Properties[\"AlertThreshold\"]\nDocument.Properties[\"StatusMessage\"] = (\"Pump \" + str(pump) + \" - alert above \"\n                                         + str(limit) + \" psig\")\n",
+      "parameters": [],
+      "transaction": true
+    },
+    {
+      "name": "Open Page",
+      "description": "Activates the page passed by the caller.",
+      "code": "# Open Page: activate the page passed by the caller.\nDocument.ActivePageReference = targetPage\n",
+      "parameters": [
+        {
+          "name": "targetPage",
+          "type": "Page",
+          "description": "Page to open"
+        }
+      ],
+      "transaction": true
+    },
+    {
+      "name": "Rename Visual",
+      "description": "Sets the title of the visualization passed by the caller.",
+      "code": "# Rename Visual: set the title of the visualization passed by the caller.\nvisual.Title = newTitle\n",
+      "parameters": [
+        {
+          "name": "visual",
+          "type": "Visualization",
+          "description": "Visualization to rename"
+        },
+        {
+          "name": "newTitle",
+          "type": "String",
+          "description": "New title"
+        }
+      ],
+      "transaction": true
+    },
+    {
+      "name": "Describe Table",
+      "description": "Writes the row count of a data table into the status line.",
+      "code": "# Describe Table: write the row count of a data table into the status line.\nDocument.Properties[\"StatusMessage\"] = table.Name + \": \" + str(table.RowCount) + \" rows\"\n",
+      "parameters": [
+        {
+          "name": "table",
+          "type": "DataTable",
+          "description": "Data table to describe"
+        }
+      ],
+      "transaction": true
+    },
+    {
+      "name": "Log Maintenance Window",
+      "description": "Summarises a maintenance slot in the status line.",
+      "code": "# Log Maintenance Window: summarise a maintenance slot in the status line.\nparts = [\"Ticket \" + str(ticketNumber), \"on \" + str(serviceDate), \"at \" + str(startTime),\n         \"for \" + str(duration), \"cost \" + str(cost), \"efficiency \" + str(efficiency)]\nDocument.Properties[\"StatusMessage\"] = \" \".join(parts)\n",
+      "parameters": [
+        {
+          "name": "ticketNumber",
+          "type": "LongInteger",
+          "description": "Work order number"
+        },
+        {
+          "name": "serviceDate",
+          "type": "Date",
+          "description": "Service date"
+        },
+        {
+          "name": "startTime",
+          "type": "Time",
+          "description": "Start time"
+        },
+        {
+          "name": "duration",
+          "type": "TimeSpan",
+          "description": "Planned duration"
+        },
+        {
+          "name": "cost",
+          "type": "Currency",
+          "description": "Estimated cost"
+        },
+        {
+          "name": "efficiency",
+          "type": "SingleReal",
+          "description": "Expected pump efficiency"
+        }
+      ],
+      "transaction": false
+    }
+  ],
+  "triggers": [
+    {
+      "property": "SelectedPumpId",
+      "script": "Update Status Message"
+    },
+    {
+      "property": "AlertThreshold",
+      "script": "Update Status Message"
+    }
+  ],
+  "pages": [
+    {
+      "title": "Script Controls",
+      "visuals": [
+        {
+          "id": "scriptControls",
+          "type": "textArea",
+          "title": "Script Controls",
+          "showTitle": false,
+          "html": "<div class=\"sf-section\"><p><b>Pump</b> {{control:pumpSelect}} {{control:showP102}}</p><p>{{control:resetPump}} {{control:raiseThreshold}} {{control:widenWindow}}</p><p>{{control:status}}</p><p><span id=\"scripts-render-time\"></span></p></div>",
+          "js": [
+            "html/Show Render Time.js"
+          ],
+          "controls": {
+            "pumpSelect": {
+              "kind": "dropdown",
+              "property": "SelectedPumpId",
+              "values": {
+                "column": {
+                  "table": "PUMP_DATA",
+                  "column": "Pump ID"
+                }
+              }
+            },
+            "showP102": {
+              "kind": "link",
+              "label": "Show P-102",
+              "script": "Select Pump",
+              "args": {
+                "pumpId": "P-102"
+              }
+            },
+            "resetPump": {
+              "kind": "button",
+              "label": "Reset Selection",
+              "script": "Reset Pump Selection",
+              "args": {}
+            },
+            "raiseThreshold": {
+              "kind": "button",
+              "label": "Alert at 1500 psig",
+              "script": "Set Alert Threshold",
+              "args": {
+                "threshold": 1500.0
+              }
+            },
+            "widenWindow": {
+              "kind": "button",
+              "label": "Last 7 Days",
+              "script": "Set Trend Window",
+              "args": {
+                "hours": 168,
+                "showEvents": false,
+                "windowStart": "2026-05-01T00:00:00"
+              }
+            },
+            "status": {
+              "kind": "label",
+              "property": "StatusMessage"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

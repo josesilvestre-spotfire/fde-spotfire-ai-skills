@@ -1,0 +1,86 @@
+{
+    "apiVersion": "2.5",
+    "version": "1.0.0",
+    "type": "action",
+    "name": "Pump Actions",
+    "id": "pump-actions",
+    "description": "Buttons and menu items for a pump analysis: show the next pump, open a page, clear markings and set a text property.",
+    "capabilities": [],
+    "icon": "icon.svg",
+    "scripts": [
+        {
+            "id": "next-asset",
+            "name": "Next pump",
+            "description": "Writes the pump after the current one into the document property ViewAsset, so every visual that filters on it shows that pump.",
+            "icon": "icons/next-asset.svg",
+            "file": "build/next-asset.js",
+            "entryPoint": "nextAsset",
+            "wrapInTransaction": true,
+            "parameters": [
+                {
+                    "name": "assets",
+                    "displayName": "Pumps",
+                    "description": "Comma-separated pumps to step through, for example Pump A,Pump B.",
+                    "type": "String"
+                }
+            ]
+        },
+        {
+            "id": "go-to-page",
+            "name": "Open page",
+            "description": "Opens the page with the given title. When there is no such page, StatusMessage lists the pages.",
+            "icon": "icons/go-to-page.svg",
+            "file": "build/go-to-page.js",
+            "entryPoint": "goToPage",
+            "wrapInTransaction": true,
+            "parameters": [
+                {
+                    "name": "pageTitle",
+                    "displayName": "Page",
+                    "description": "Title of the page to open, for example Pump Detail.",
+                    "type": "String"
+                }
+            ]
+        },
+        {
+            "id": "clear-marking",
+            "name": "Clear marking",
+            "description": "Clears one or more markings in every data table.",
+            "icon": "icons/clear-marking.svg",
+            "file": "build/clear-marking.js",
+            "entryPoint": "clearMarking",
+            "wrapInTransaction": true,
+            "parameters": [
+                {
+                    "name": "markingNames",
+                    "displayName": "Markings",
+                    "description": "One marking name or several separated by commas, for example Marking, Event Pick.",
+                    "type": "String"
+                }
+            ]
+        },
+        {
+            "id": "set-text-property",
+            "name": "Set text property",
+            "description": "Writes a value into a String document property, only when the value changes, so its trigger script runs once per real change.",
+            "icon": "icons/set-text-property.svg",
+            "file": "build/set-text-property.js",
+            "entryPoint": "setTextProperty",
+            "wrapInTransaction": true,
+            "parameters": [
+                {
+                    "name": "propertyName",
+                    "displayName": "Property",
+                    "description": "Name of an existing String document property, for example ViewMode.",
+                    "type": "String"
+                },
+                {
+                    "name": "propertyValue",
+                    "displayName": "Value",
+                    "description": "Text to write, for example Daily.",
+                    "type": "String"
+                }
+            ]
+        }
+    ]
+}

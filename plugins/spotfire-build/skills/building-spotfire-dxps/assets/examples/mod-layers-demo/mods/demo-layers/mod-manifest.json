@@ -1,0 +1,88 @@
+{
+  "apiVersion": "2.4",
+  "version": "1.0.0",
+  "name": "Layer demo",
+  "id": "demo-layers",
+  "icon": "icon.svg",
+  "type": "visualization",
+  "description": "Shows each layer of the visual with its rows, marking and settings.",
+  "properties": [
+    {"name": "heading", "type": "string", "defaultValue": "Layers"},
+    {"name": "showGrid", "type": "boolean", "defaultValue": false},
+    {"name": "lineWidth", "type": "double", "defaultValue": 1.0},
+    {"name": "maxRows", "type": "integer", "defaultValue": 1000}
+  ],
+  "dataViewDefinition": {
+    "tooltip": {"enabled": false}
+  },
+  "legend": {"defaultPlacement": "right", "defaultVisibility": "hidden"},
+  "layers": [
+    {
+      "type": "Series",
+      "disableAddRemove": false,
+      "properties": [
+        {"name": "role", "type": "string", "defaultValue": ""},
+        {"name": "lineWidth", "type": "double", "defaultValue": 1.0},
+        {"name": "visible", "type": "boolean", "defaultValue": true}
+      ],
+      "dataViewDefinition": {
+        "axes": [
+          {"name": "X", "mode": "continuous", "placement": "none",
+           "allowNonAggregatingMeasures": "prefer",
+           "dataTypes": {"allowNumeric": true, "allowDateTime": true},
+           "propertyControl": {"title": "Time"},
+           "legendItem": {"defaultVisibility": "hidden"},
+           "automaticConfiguration": {"expressionHeuristics": "none"}},
+          {"name": "Values", "mode": "continuous", "placement": "none",
+           "allowMultipleMeasures": true,
+           "allowNonAggregatingMeasures": "prefer",
+           "dataTypes": {"allowNumeric": true},
+           "propertyControl": {"title": "Values"},
+           "legendItem": {"defaultVisibility": "hidden"},
+           "automaticConfiguration": {"expressionHeuristics": "none"}},
+          {"name": "Series", "mode": "categorical", "placement": "none",
+           "optional": true,
+           "propertyControl": {"title": "Split by"},
+           "legendItem": {"defaultVisibility": "hidden"},
+           "automaticConfiguration": {"expressionHeuristics": "none"}},
+          {"name": "Bin", "mode": "categorical", "placement": "none",
+           "optional": true,
+           "propertyControl": {"title": "Time bin"},
+           "legendItem": {"defaultVisibility": "hidden"},
+           "automaticConfiguration": {"expressionHeuristics": "none"}}
+        ],
+        "tooltip": {"enabled": false}
+      }
+    },
+    {
+      "type": "Records",
+      "disableAddRemove": false,
+      "properties": [
+        {"name": "role", "type": "string", "defaultValue": ""}
+      ],
+      "dataViewDefinition": {
+        "axes": [
+          {"name": "Key", "mode": "categorical", "placement": "none",
+           "propertyControl": {"title": "Row key"},
+           "legendItem": {"defaultVisibility": "hidden"},
+           "automaticConfiguration": {
+             "expressionHeuristics": {"expression": "<baserowid()>"}}},
+          {"name": "Attributes", "mode": "categorical", "placement": "none",
+           "optional": true,
+           "propertyControl": {"title": "Row attributes"},
+           "legendItem": {"defaultVisibility": "hidden"},
+           "automaticConfiguration": {"expressionHeuristics": "none"}},
+          {"name": "Values", "mode": "continuous", "placement": "none",
+           "optional": true,
+           "allowNonAggregatingMeasures": "prefer",
+           "dataTypes": {"allowNumeric": true, "allowDateTime": true},
+           "propertyControl": {"title": "Row value"},
+           "legendItem": {"defaultVisibility": "hidden"},
+           "automaticConfiguration": {"expressionHeuristics": "none"}}
+        ],
+        "tooltip": {"enabled": false}
+      }
+    }
+  ],
+  "files": ["index.html", "main.css", "main.js", "icon.svg"]
+}

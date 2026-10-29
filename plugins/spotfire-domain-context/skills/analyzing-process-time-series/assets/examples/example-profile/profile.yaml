@@ -1,0 +1,27 @@
+# A deployment profile: everything true of one asset at one site and of nothing else.
+#
+# This is the layer that changes constantly, and the reason the three layers below it can
+# stay still. Nothing here is knowledge; it is all configuration.
+#
+#   python -m tssme analyse --profile example-segment --out report.md
+
+profile_id: example-segment
+name: Example flow segment
+description: >
+  The synthetic example deployment. Points the flow-segment class card at the generated
+  wide-format export via a tag map and a calibration overlay. No real asset, no real site.
+
+unit: flow-segment
+pack: example
+
+tagmap: tagmap.yaml
+calibration: calibration.yaml
+data: data.csv
+
+# `asset` is omitted because this export holds a single unit. Set it only for a frame that
+# carries several assets and a tag map with an asset_pattern to tell them apart.
+
+notes: >
+  Regenerate the data with `python assets/examples/make_data.py`. The planted faults and which
+  check is expected to catch each are listed in references/example-walkthrough.md; a fault that stops being
+  detected is a regression in the engine, not a change in the data.

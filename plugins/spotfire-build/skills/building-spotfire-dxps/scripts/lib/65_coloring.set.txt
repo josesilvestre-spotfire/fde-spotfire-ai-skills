@@ -1,0 +1,25 @@
+# 65_coloring.py - every property the module assigns (sfapi.py has --set --stdin).
+ColorAxis.Expression
+Coloring.DefaultColor
+Coloring.EmptyColor
+ContinuousColorRule.IntervalMode
+ColoringCollection.DefaultNumericReference
+ReferenceLayer.Name
+ReferenceLayerData.DataTableReference
+ReferenceLayer.ValueAxis
+ReferenceLayer.Expression
+ReferenceLayer.SecondaryExpression
+ReferenceLayer.IsBackground
+ReferenceLayer.Transparency
+Spotfire.Dxp.Application.Visuals.ReferenceElements.Line.Enabled
+Spotfire.Dxp.Application.Visuals.ReferenceElements.Line.Stroke
+Band.FillEnabled
+Band.Fill
+Band.StrokeEnabled
+Band.Stroke
+Spotfire.Dxp.Application.Visuals.ReferenceElements.Label.Enabled
+Spotfire.Dxp.Application.Visuals.ReferenceElements.Label.Style
+ReferenceCurve.Visible
+ReferenceCurve.Color
+ReferenceCurve.CustomDisplayName
+ReferenceDetailItem.ShowInLabel

@@ -1,0 +1,410 @@
+card_version: "1.0"
+unit_id: cryogenic-ngl-recovery
+unit_class: ngl_recovery
+service: >
+  Cryogenic NGL recovery train: treated, dried gas is chilled in a brazed aluminium cold box,
+  expanded through a turboexpander and separated in a demethanizer, sending residue gas to
+  sales and Y-grade NGL to fractionation. The analysable quantities are cold box approach and
+  dP, expander outlet temperature at matched pressure ratio, and ethane recovery read against
+  the operating mode.
+persona: process_engineer_ngl
+description: >
+  DRAFT CARD, pending SME review. Written from the process reference in this skill
+  (references/unit-reference.md, cryogenic NGL recovery). It validates against the engine
+  schema but has never been run against plant data, and every failure mode is marked
+  UNVERIFIED until a process engineer confirms it.
+
+  Ethane recovery and ethane rejection are both normal and are switched on commercial
+  grounds, so the operating mode is a regime. Comparing a recovery-mode sample with a
+  rejection-mode baseline reports a fault at every switch.
+
+  Configurations (ISS, GSP, RSV and others) differ in how much cold feed is subcooled and
+  refluxed, and so in the expected temperature profile. Record the configuration in the
+  deployment profile; a band calibrated on one configuration does not transfer.
+
+topology:
+  upstream: [amine_treating, dehydration_mol_sieve, mercury_removal]
+  downstream: [residue_compression, ngl_fractionation]
+
+roles:
+  - id: inlet_gas_flow
+    description: Treated, dried gas rate into the cold box
+    kind: sensor
+    quantity: flow
+    units: MMscfd
+    limits: {lo: 0}
+    control_role: DV
+    source: "Negative gas rate is not a measurement. Asset-specific range."
+
+  - id: design_gas_flow
+    description: Design gas rate of the train, supplied by the deployment as a constant column
+    kind: manual
+    quantity: flow
+    units: MMscfd
+    limits: {lo: 0}
+    control_role: IND
+    source: "An asset record value that makes the rate regime scale-free. Required: without it there is no rate regime."
+
+  - id: recovery_mode
+    description: Operating mode, 1 for ethane recovery and 0 for ethane rejection
+    kind: status
+    quantity: dimensionless
+    units: flag
+    control_role: DV
+    source: >
+      A commercial decision recorded as a status. Required because it is a regime. A train
+      that only ever runs one mode supplies a constant column.
+
+  - id: inlet_c2_frac
+    description: Ethane content of the inlet gas
+    kind: sensor
+    quantity: concentration
+    units: mol%
+    limits: {lo: 0, hi: 100}
+    control_role: DV
+    source: "Chromatograph value. A mole fraction lies between 0 and 100 percent."
+
+  - id: inlet_co2
+    description: CO2 content of the gas entering the cold section
+    kind: sensor
+    quantity: concentration
+    units: ppmv
+    limits: {lo: 0}
+    control_role: DV
+    required: false
+    source: "CO2 freezes in the cold section; the upstream amine unit controls it. The limit is a design value that belongs in the profile."
+
+  - id: inlet_water
+    description: Water content of the gas entering the cold section
+    kind: sensor
+    quantity: concentration
+    units: ppmv
+    limits: {lo: 0}
+    control_role: DV
+    required: false
+    source: "Water freezes in the cold section; mol sieve dehydration upstream controls it. The target, commonly quoted on the order of 0.1 ppmv, is UNVERIFIED for any asset."
+
+  - id: coldbox_dp
+    description: Differential pressure across the cold box feed path
+    kind: sensor
+    quantity: differential_pressure
+    units: psi
+    control_role: IND
+    source: "The freeze indicator. Scales with gas rate, so it is compared within rate regimes."
+
+  - id: coldbox_hot_inlet_temperature
+    description: Feed gas temperature entering the warm end of the cold box
+    kind: sensor
+    quantity: temperature
+    units: degF
+    control_role: DV
+    source: "Asset-specific range."
+
+  - id: coldbox_cold_outlet_temperature
+    description: Returning cold stream (residue gas) temperature leaving the warm end
+    kind: sensor
+    quantity: temperature
+    units: degF
+    control_role: IND
+    source: "Asset-specific range."
+
+  - id: expander_inlet_pressure
+    description: Turboexpander inlet pressure
+    kind: sensor
+    quantity: pressure
+    units: psia
+    limits: {lo: 0}
+    control_role: IND
+    source: "Absolute pressure cannot be negative."
+
+  - id: expander_outlet_pressure
+    description: Turboexpander outlet pressure
+    kind: sensor
+    quantity: pressure
+    units: psia
+    limits: {lo: 0}
+    control_role: IND
+    source: "Absolute pressure cannot be negative."
+
+  - id: expander_inlet_temperature
+    description: Turboexpander inlet temperature
+    kind: sensor
+    quantity: temperature
+    units: degF
+    control_role: IND
+    source: "Asset-specific range."
+
+  - id: expander_outlet_temperature
+    description: Turboexpander outlet temperature
+    kind: sensor
+    quantity: temperature
+    units: degF
+    control_role: IND
+    source: "Asset-specific range."
+
+  - id: expander_isentropic_efficiency
+    description: Expander isentropic efficiency computed in the source system
+    kind: calculated
+    quantity: efficiency
+    units: percent
+    limits: {lo: 0, hi: 100}
+    control_role: IND
+    required: false
+    source: >
+      Needs an equation of state, which this card does not carry, so it is taken from the
+      source system when available. A healthy value of roughly 80 to 85 percent is commonly
+      quoted and is UNVERIFIED for any machine.
+
+  - id: demethanizer_pressure
+    description: Demethanizer operating pressure
+    kind: sensor
+    quantity: pressure
+    units: psig
+    control_role: CV
+    source: "Asset-specific range."
+
+  - id: demethanizer_top_temperature
+    description: Demethanizer overhead temperature
+    kind: sensor
+    quantity: temperature
+    units: degF
+    control_role: IND
+    source: "Runs colder in recovery mode. Asset-specific range."
+
+  - id: demethanizer_dp
+    description: Differential pressure across the demethanizer
+    kind: sensor
+    quantity: differential_pressure
+    units: psi
+    control_role: IND
+    required: false
+    source: "Flooding indicator. Scales with vapour rate."
+
+  - id: residue_gas_flow
+    description: Residue gas rate to sales
+    kind: sensor
+    quantity: flow
+    units: MMscfd
+    limits: {lo: 0}
+    control_role: IND
+    source: "Negative flow is not a measurement."
+
+  - id: residue_gas_c2_frac
+    description: Ethane content of the residue gas
+    kind: sensor
+    quantity: concentration
+    units: mol%
+    limits: {lo: 0, hi: 100}
+    control_role: IND
+    source: "Chromatograph value; the recovery measure, read against the mode."
+
+  - id: ngl_c1_frac
+    description: Methane content of the NGL product
+    kind: sensor
+    quantity: concentration
+    units: mol%
+    limits: {lo: 0, hi: 100}
+    control_role: CV
+    required: false
+    source: "The NGL quality spec is contractual and comes from the profile as a normative band."
+
+  - id: ngl_c2_flow_gas_equiv
+    description: Ethane leaving in the NGL, as gas-equivalent rate, computed in the source system
+    kind: calculated
+    quantity: flow
+    units: MMscfd
+    limits: {lo: 0}
+    control_role: IND
+    required: false
+    source: "Needed only for the ethane component balance. Converting liquid ethane to gas equivalent needs a property basis this card does not carry."
+
+derived:
+  - id: feed_rate_pct
+    expr: "100.0 * inlet_gas_flow / design_gas_flow"
+    units: percent
+    description: Gas rate as a percentage of design, the scale-free rate regime
+    source: "Definition."
+
+  - id: coldbox_approach
+    expr: "coldbox_hot_inlet_temperature - coldbox_cold_outlet_temperature"
+    units: degF
+    description: Warm-end approach of the cold box
+    source: "Definition. Brazed aluminium exchangers run tight approaches, so a degrading approach shows before anything else."
+
+  - id: expander_ratio
+    expr: "expander_inlet_pressure / expander_outlet_pressure"
+    units: ratio
+    description: Expander pressure ratio, the matching variable for outlet temperature
+    source: "Definition."
+
+  - id: c2_recovery_pct
+    expr: "100.0 * (1.0 - (residue_gas_flow * residue_gas_c2_frac) / (inlet_gas_flow * inlet_c2_frac))"
+    units: percent
+    description: Ethane recovered from the inlet gas
+    source: "Component balance on ethane, inlet minus residue over inlet."
+
+invariants:
+  - id: expander_cools
+    kind: inequality
+    expr: "expander_outlet_temperature < expander_inlet_temperature"
+    severity: high
+    source: "Expansion through the turboexpander lowers temperature. A violation is a tag or sign error."
+
+  - id: expander_drops_pressure
+    kind: inequality
+    expr: "expander_outlet_pressure < expander_inlet_pressure"
+    severity: high
+    source: "An expander lowers pressure by definition. A violation is a tag or sign error."
+
+  - id: ethane_balance
+    kind: balance
+    expr: "inlet_gas_flow * inlet_c2_frac / 100.0 == residue_gas_flow * residue_gas_c2_frac / 100.0 + ngl_c2_flow_gas_equiv"
+    tol: 0.05
+    severity: medium
+    requires_roles: [ngl_c2_flow_gas_equiv]
+    source: >
+      Ethane in equals ethane in residue plus ethane in NGL. This identity validates the
+      chromatographs, and recovery means nothing until it holds. The 5 percent tolerance for
+      metering and analyser uncertainty is UNVERIFIED.
+
+confounders:
+  - id: gas_rate_change
+    description: Gas rate changed, so cold box dP, approach and recovery moved with it.
+    roles: [inlet_gas_flow]
+    test: regime_shift
+    source: "Process reference, cryogenic NGL recovery"
+
+  - id: mode_switch
+    description: >
+      A switch between ethane recovery and rejection moves temperatures, recovery and residue
+      ethane together. It is a commercial decision, not a fault.
+    roles: [recovery_mode]
+    test: step_change
+    source: "Process reference, cryogenic NGL recovery"
+
+  - id: feed_richness_change
+    description: A leaner or richer inlet gas changes recovery and cold box duty with no fault.
+    roles: [inlet_c2_frac]
+    test: correlates_with
+    source: "Process reference, cryogenic NGL recovery"
+
+failure_modes:
+  - id: coldbox_freeze
+    name: Cold box freeze (CO2 or water solids)
+    severity: high
+    onset: hours
+    signature:
+      coldbox_dp: up
+      coldbox_approach: up
+      c2_recovery_pct: down
+    confounders: [gas_rate_change, mode_switch]
+    discriminators:
+      - "dP compared within a rate regime is the test. A rate increase raises dP legitimately."
+      - "A freeze traces back to an amine CO2 or mol sieve water excursion a few hours earlier; look upstream before the cold box."
+      - "Fouling from heavies or lube oil and flow maldistribution give a similar picture but develop more slowly."
+    verify_in_field:
+      - "Check upstream CO2 and water analysers over the preceding hours; plan a derime if confirmed."
+    source: "UNVERIFIED: process reference (cryogenic NGL recovery), pending SME review"
+
+  - id: co2_slip_to_coldbox
+    name: Amine CO2 slip reaching the cold section
+    severity: high
+    onset: days
+    signature:
+      inlet_co2: up
+      coldbox_dp: up
+      coldbox_approach: up
+    confounders: [gas_rate_change]
+    differentials: [water_breakthrough]
+    discriminators:
+      - "Which upstream unit's own signature is also present. CO2 slip and water breakthrough both end at the cold box."
+      - "Rule out CO2 analyser drift against a lab sample."
+    verify_in_field:
+      - "Check the amine unit's treated gas CO2 and lean loading over the same window."
+    source: "UNVERIFIED: process reference (cryogenic NGL recovery), pending SME review"
+
+  - id: water_breakthrough
+    name: Mol sieve water breakthrough
+    severity: high
+    onset: hours
+    signature:
+      inlet_water: up
+      coldbox_dp: up
+      coldbox_approach: up
+    confounders: [gas_rate_change]
+    differentials: [co2_slip_to_coldbox]
+    discriminators:
+      - "Correlates with adsorption cycle position. This card carries no cycle role, so check the bed switching log by hand."
+    verify_in_field:
+      - "Check bed switching times, regeneration gas temperature profile and the dehydration analyser."
+    source: "UNVERIFIED: process reference (cryogenic NGL recovery), pending SME review"
+
+  - id: expander_performance_loss
+    name: Turboexpander performance loss
+    severity: medium
+    onset: weeks
+    signature:
+      expander_isentropic_efficiency: down
+      expander_outlet_temperature: up
+      c2_recovery_pct: down
+    confounders: [gas_rate_change, mode_switch, feed_richness_change]
+    differentials: [coldbox_freeze]
+    discriminators:
+      - "Compare at matched expander ratio. Efficiency down at matched ratio is the expander; approach degraded with efficiency intact is the exchanger."
+    verify_in_field:
+      - "Review expander vibration, seal gas and inlet guide vane position; compare with the performance test."
+    source: "UNVERIFIED: process reference (cryogenic NGL recovery), pending SME review"
+
+  - id: demethanizer_flooding
+    name: Demethanizer flooding
+    severity: high
+    onset: hours
+    signature:
+      demethanizer_dp: up
+      ngl_c1_frac: up
+      residue_gas_c2_frac: up
+    confounders: [gas_rate_change]
+    discriminators:
+      - "Both product streams degrading at once is the flooding signature. One stream alone is a duty problem."
+    verify_in_field:
+      - "Check column dP against rate, reboiler and side heater duty, and reflux."
+    source: "UNVERIFIED: process reference (cryogenic NGL recovery), pending SME review"
+
+regimes:
+  - id: mode
+    by: recovery_mode
+    method: discrete
+  - id: rate_band
+    by: feed_rate_pct
+    method: bin
+    params: {width: 10, units: percent of design}
+
+checks:
+  enabled:
+    - dq_timestamp_regularity
+    - dq_duplicate_series
+    - dq_partial_rows
+    - dq_flatline
+    - dq_zero_order_hold
+    - dq_rail_saturation
+    - dq_missing
+    - phys_range
+    - rel_identity
+    - rel_inequality
+    - stat_regime_drift
+    - stat_changepoint
+    - stat_detector_firing_rate
+    - sme_signature_match
+
+notes: >
+  Draft card generated from the process reference and pending SME review. Not run against
+  plant data. The rate regime bins gas rate at 10 percent of design; that width is a starting
+  choice, not a sourced value.
+
+  Not carried: the invariant that ethane recovery rises as the demethanizer top gets colder.
+  It holds only in recovery mode, and the engine's requires_roles gate can require that the
+  mode role is present but cannot restrict the evaluation to recovery-mode rows. Add it when
+  the engine supports conditional evaluation.
+
+  Out of scope: equation-of-state calculations (isentropic efficiency is taken from the
+  source system), mercury removal, residue compression and refrigeration systems.

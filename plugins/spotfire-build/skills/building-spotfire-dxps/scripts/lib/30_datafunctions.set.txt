@@ -1,0 +1,15 @@
+# Public Spotfire properties assigned by lib/30_datafunctions.py
+# check: python scripts/sfapi.py has --set --stdin < lib/30_datafunctions.set.txt
+DataFunctionDefinitionBuilder.FunctionName
+DataFunctionDefinitionBuilder.DisplayName
+DataFunctionDefinitionBuilder.Description
+IDictionary<String, String>.Item
+InputParameterBuilder.DisplayName
+InputParameterBuilder.Description
+OutputParameterBuilder.DisplayName
+OutputParameterBuilder.Description
+DataFunction.Name
+DataFunction.UpdateBehavior
+DataTable.Name
+# settings escape hatch used by assets/examples/fragments/datafunctions.json (apply_settings, 00_core)
+DataFunction.Visible

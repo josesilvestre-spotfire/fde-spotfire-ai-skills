@@ -1,0 +1,163 @@
+{
+  "specVersion": 1,
+  "app": {
+    "name": "Pump Vibration Monitor",
+    "description": "Vibration trend, forecast and alarm hours per pump.",
+    "namingPolicy": "program",
+    "htmlMode": "safe",
+    "theme": {"base": "LightSfx"},
+    "pageNavigation": "Tabs"
+  },
+  "tables": [
+    {"name": "PUMP_READINGS",
+     "source": {"type": "csv", "path": "data/PUMP_READINGS.csv",
+                "columns": {"Timestamp (UTC)": "DateTime", "Pump ID": "String",
+                            "Flow Rate (bbl/d)": "Real", "Discharge Pressure (psi)": "Real",
+                            "Vibration (mm/s)": "Real"}},
+     "description": "Hourly readings per pump.",
+     "embed": true},
+    {"name": "VIBRATION_TREND",
+     "source": {"type": "dataFunction", "function": "Calculate Vibration Trend",
+                "output": "VIBRATION_TREND"},
+     "description": "History and forecast of the selected pump."},
+    {"name": "FLEET_LATEST",
+     "source": {"type": "dataFunction", "function": "Calculate Vibration Trend",
+                "output": "FLEET_LATEST"},
+     "description": "Latest reading per pump in the selected window.",
+     "columns": {"Pump ID": {"description": "Pump"},
+                 "Timestamp (UTC)": {"description": "Time of the latest reading"},
+                 "Flow Rate (bbl/d)": {"description": "Latest flow rate"},
+                 "Discharge Pressure (psi)": {"description": "Latest discharge pressure"},
+                 "Vibration (mm/s)": {"description": "Latest vibration"}}}
+  ],
+  "defaultTable": "PUMP_READINGS",
+  "relations": [],
+  "markings": [
+    {"name": "Selected Pump", "color": "#E94165", "default": true}
+  ],
+  "properties": [
+    {"name": "PumpId", "type": "String", "default": "P-103", "description": "Pump"},
+    {"name": "WindowStart", "type": "DateTime", "default": "2026-01-01T00:00:00",
+     "description": "Date range start"},
+    {"name": "WindowEnd", "type": "DateTime", "default": "2026-03-01T00:00:00",
+     "description": "Date range end"},
+    {"name": "AlarmLevel", "type": "Real", "default": 7.1, "description": "Alarm level (mm/s)"},
+    {"name": "SmoothingSpan", "type": "Integer", "default": 48,
+     "description": "Smoothing span (h)"},
+    {"name": "ForecastHours", "type": "Integer", "default": 72,
+     "description": "Forecast horizon (h)"},
+    {"name": "ShowRaw", "type": "Boolean", "default": true,
+     "description": "Show raw readings"},
+    {"name": "LatestVibration", "type": "Real", "default": 0.0,
+     "description": "Latest vibration of the selected pump (mm/s)"},
+    {"name": "HoursOverAlarm", "type": "LongInteger", "default": 0,
+     "description": "Hours at or above the alarm level for the selected pump"},
+    {"name": "MeanFlow", "type": "Real", "default": 0.0,
+     "description": "Mean flow of the selected pump (bbl/d)"},
+    {"name": "RowsInView", "type": "LongInteger", "default": 0,
+     "description": "Readings in the selected window"}
+  ],
+  "dataFunctions": [
+    {"name": "Calculate Vibration Trend",
+     "description": "Smooths and forecasts the selected pump's vibration and writes the KPI values.",
+     "engine": "python",
+     "script": "datafunctions/calculate_vibration_trend.py",
+     "inputs": [
+       {"name": "PUMP_READINGS", "type": "table", "bind": {"table": "PUMP_READINGS", "columns": "*"}},
+       {"name": "PumpId", "type": "value", "dataTypes": ["String"], "bind": {"property": "PumpId"}},
+       {"name": "WindowStart", "type": "value", "dataTypes": ["DateTime"],
+        "bind": {"property": "WindowStart"}},
+       {"name": "WindowEnd", "type": "value", "dataTypes": ["DateTime"],
+        "bind": {"property": "WindowEnd"}},
+       {"name": "AlarmLevel", "type": "value", "dataTypes": ["Real"],
+        "bind": {"property": "AlarmLevel"}},
+       {"name": "SmoothingSpan", "type": "value", "dataTypes": ["Integer"],
+        "bind": {"property": "SmoothingSpan"}},
+       {"name": "ForecastHours", "type": "value", "dataTypes": ["Integer"],
+        "bind": {"property": "ForecastHours"}},
+       {"name": "ShowRaw", "type": "value", "dataTypes": ["Boolean"],
+        "bind": {"property": "ShowRaw"}}
+     ],
+     "outputs": [
+       {"name": "VIBRATION_TREND", "type": "table", "target": {"table": "VIBRATION_TREND"}},
+       {"name": "FLEET_LATEST", "type": "table", "target": {"table": "FLEET_LATEST"}},
+       {"name": "LatestVibration", "type": "value", "target": {"property": "LatestVibration"}},
+       {"name": "HoursOverAlarm", "type": "value", "target": {"property": "HoursOverAlarm"}},
+       {"name": "MeanFlow", "type": "value", "target": {"property": "MeanFlow"}},
+       {"name": "RowsInView", "type": "value", "target": {"property": "RowsInView"}}
+     ],
+     "refresh": "automatic",
+     "executeAtBuild": true}
+  ],
+  "scripts": [],
+  "pages": [
+    {"title": "Trend",
+     "filters": {"tables": []},
+     "visuals": [
+       {"id": "kpiBand", "type": "textArea", "title": "Key Figures", "showTitle": false,
+        "html": "html/kpi_band.html",
+        "controls": {
+          "latestVibration": {"kind": "label", "property": "LatestVibration"},
+          "hoursOverAlarm": {"kind": "label", "property": "HoursOverAlarm"},
+          "meanFlow": {"kind": "label", "property": "MeanFlow"}}},
+       {"id": "trendPanel", "type": "textArea", "title": "Trend Settings", "showTitle": false,
+        "html": "html/trend_panel.html",
+        "controls": {
+          "pumpId": {"kind": "dropdown", "property": "PumpId",
+                     "values": {"column": {"table": "PUMP_READINGS", "column": "Pump ID"}}},
+          "windowStart": {"kind": "input", "property": "WindowStart"},
+          "windowEnd": {"kind": "input", "property": "WindowEnd"},
+          "alarmLevel": {"kind": "input", "property": "AlarmLevel"},
+          "smoothingSpan": {"kind": "slider", "property": "SmoothingSpan",
+                            "min": 6, "max": 168, "step": 6},
+          "forecastHours": {"kind": "slider", "property": "ForecastHours",
+                            "min": 24, "max": 336, "step": 24},
+          "showRaw": {"kind": "checkbox", "property": "ShowRaw"}}},
+       {"id": "vibrationTrend", "type": "lineChart", "table": "VIBRATION_TREND",
+        "title": "${PumpId} vibration and ${ForecastHours} h forecast (mm/s)",
+        "x": "[Timestamp (UTC)]",
+        "y": ["Avg([Vibration (mm/s)]) as [Raw]",
+              "Avg([Vibration Smoothed (mm/s)]) as [Smoothed]",
+              "Avg([Vibration Forecast (mm/s)]) as [Forecast]",
+              "Avg([Forecast Lower (mm/s)]) as [Forecast Lower]",
+              "Avg([Forecast Upper (mm/s)]) as [Forecast Upper]"],
+        "colorBy": "<[Axis.Default.Names]>",
+        "coloring": {"categorical": {"Raw": "#94A3B8", "Smoothed": "#2563EB",
+                                     "Forecast": "#A78BFA", "Forecast Lower": "#D8CCFD",
+                                     "Forecast Upper": "#D8CCFD"}},
+        "referenceLayers": [
+          {"kind": "horizontalLine", "value": "[$AlarmLevel]", "color": "#F59E0B",
+           "dash": "dash", "label": "Alarm"}]}
+     ],
+     "layout": {"column": [
+       {"visual": "kpiBand", "weight": 14},
+       {"row": [{"visual": "trendPanel", "weight": 18},
+                {"visual": "vibrationTrend", "weight": 82}], "weight": 86}
+     ]}},
+    {"title": "Fleet",
+     "filters": {"tables": [{"table": "FLEET_LATEST", "columns": ["Pump ID"]}]},
+     "visuals": [
+       {"id": "fleetPanel", "type": "textArea", "title": "Fleet Settings", "showTitle": false,
+        "html": "html/fleet_panel.html",
+        "controls": {
+          "fleetAlarmLevel": {"kind": "input", "property": "AlarmLevel"},
+          "rowsInView": {"kind": "label", "property": "RowsInView"}}},
+       {"id": "alarmHours", "type": "barChart", "table": "PUMP_READINGS",
+        "title": "Hours over alarm",
+        "x": "<[Pump ID]>",
+        "y": "Sum(If([Vibration (mm/s)] >= DocumentProperty(\"AlarmLevel\"), 1, 0)) as [Hours over alarm]",
+        "limitExpression": "[Timestamp (UTC)] >= DocumentProperty(\"WindowStart\") and [Timestamp (UTC)] < DocumentProperty(\"WindowEnd\")"},
+       {"id": "latestReadings", "type": "table", "table": "FLEET_LATEST",
+        "title": "Latest reading per pump",
+        "marking": "Selected Pump",
+        "columns": ["Pump ID", "Timestamp (UTC)", "Flow Rate (bbl/d)",
+                    "Discharge Pressure (psi)", "Vibration (mm/s)"]}
+     ],
+     "layout": {"row": [
+       {"visual": "fleetPanel", "weight": 18},
+       {"column": [{"visual": "alarmHours", "weight": 50},
+                   {"visual": "latestReadings", "weight": 50}], "weight": 82}
+     ]}}
+  ],
+  "activePage": "Trend"
+}

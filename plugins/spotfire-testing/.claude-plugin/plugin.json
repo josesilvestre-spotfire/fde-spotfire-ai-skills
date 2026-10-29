@@ -1,0 +1,14 @@
+{
+  "name": "spotfire-testing",
+  "version": "0.1.0-alpha.1",
+  "description": "Run Spotfire Analyst unattended and test DXPs through the user interface with window screenshots after each step. Windows only.",
+  "author": {
+    "name": "josesilvestre-spotfire"
+  },
+  "keywords": [
+    "spotfire",
+    "testing",
+    "automation",
+    "ui-testing"
+  ]
+}

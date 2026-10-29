@@ -1,0 +1,444 @@
+card_version: "1.0"
+unit_id: crude-pump-station
+unit_class: pump_station
+service: >
+  Mainline crude oil pump station and the pipeline segment immediately downstream of it.
+  The station adds head; the segment consumes it as friction. The analysable quantity is the
+  gap between measured and hydraulically predicted pressure drop across the segment.
+persona: pipeline_engineer
+description: >
+  Covers both halves of a station: the centrifugal pump itself (head vs flow against its curve)
+  and the downstream segment (Darcy-Weisbach friction vs measured drop). Most midstream crude
+  monitoring datasets carry suction pressure, discharge pressure, flow, temperature, and periodic
+  lab SG/viscosity. That is enough to compute pump head and a hydraulic residual, which together
+  separate pump degradation from line restriction.
+
+  This is a CLASS card. It carries physics, identities, failure modes and confounders, all of
+  which hold for any mainline crude station. It deliberately carries almost no `normal` bands,
+  because an operating envelope is a property of one asset on one line at one throughput
+  schedule, not of the class. Bands arrive from a calibration overlay in the deployment
+  profile. The one banded quantity here is `residual_pct`, and it is normative: a model quality
+  target, not a description of anyone's station.
+
+topology:
+  upstream: [tank_farm, previous_pump_station]
+  downstream: [next_pump_station, delivery_terminal]
+
+roles:
+  - id: suction_pressure
+    description: Station suction pressure, upstream of the pump
+    kind: sensor
+    quantity: pressure
+    units: psig
+    limits: {lo: -14.7}
+    control_role: IND
+    source: >
+      Crude mainline suction is held above vapour pressure plus NPSHr margin (Menon, Liquid
+      Pipeline Hydraulics, Ch.6). The operating band is asset-specific and comes from the
+      calibration overlay. The hard limit is physical: psig cannot fall below full vacuum.
+
+  - id: discharge_pressure
+    description: Station discharge pressure, downstream of the pump
+    kind: sensor
+    quantity: pressure
+    units: psig
+    limits: {lo: -14.7}
+    control_role: MV
+    source: >
+      Operating band and MAOP ceiling are asset-specific and come from the calibration overlay.
+      The station's real ceiling is min(MAOP, flange class rating at temperature) per ASME B31.4
+      and must be read off the asset record, never assumed from a typical class.
+
+  - id: flow
+    description: Station throughput
+    kind: sensor
+    quantity: flow
+    units: BPD
+    limits: {lo: 0}
+    control_role: DV
+    source: >
+      Throughput range is a nomination and capacity question, so it is asset-specific and comes
+      from the calibration overlay. Negative mainline flow is not a measurement.
+
+  - id: temperature
+    description: Crude temperature at the station
+    kind: sensor
+    quantity: temperature
+    units: degF
+    control_role: DV
+    source: >
+      Buried mainline crude tracks ground temperature seasonally (Menon Ch.2), so the range is a
+      function of burial depth, climate and throughput. Asset-specific; comes from the overlay.
+      When calibrating it, exclude any samples pinned at an exact min or max: those are the
+      transmitter span, not the crude.
+
+  - id: dra_ppm
+    description: Drag reducing agent injection concentration
+    kind: sensor
+    quantity: concentration
+    units: ppm
+    limits: {lo: 0}
+    control_role: MV
+    source: >
+      Crude DRA dose is typically 5-25 ppm for 20-60 percent drag reduction (Burger, Chung & Munk,
+      SPE 9419, presented 1980, published J.Pet.Tech 1982). Actual dosing is a contract and
+      operations decision, so the band comes from the overlay. A station with a fixed dose will
+      show this tag as constant, which makes the dra_change confounder untestable there.
+
+  - id: specific_gravity
+    description: Crude specific gravity from lab assay
+    kind: lab
+    quantity: specific_gravity
+    units: dimensionless
+    limits: {lo: 0.70, hi: 1.10}
+    control_role: DV
+    update_interval: 7d
+    source: >
+      Class limits span the crude range roughly API 70 down to API -3 (SG 0.70 to 1.10). The band
+      actually carried on a given line depends on the crude slate and comes from the overlay.
+      Declared `lab` because it is assayed: it will be zero-order-held in any export, and
+      everything computed from it inherits that staleness.
+
+  - id: viscosity
+    description: Kinematic viscosity from lab assay at reference temperature
+    kind: lab
+    quantity: viscosity
+    units: cSt
+    limits: {lo: 0}
+    control_role: DV
+    update_interval: 7d
+    source: >
+      Crude slate dependent, so the band comes from the overlay. Kinematic viscosity is positive
+      by definition. If this tag changes every sample it is not an assay: it is modelled or
+      temperature-corrected (ASTM D341 Walther), and it is then not independent evidence for the
+      lab_staleness confounder. dq_zero_order_hold exists to catch that contradiction.
+
+  - id: actual_drop
+    description: Measured pressure drop across the downstream segment
+    kind: calculated
+    quantity: differential_pressure
+    units: psi
+    control_role: IND
+    source: >
+      Derived in the source system from this station's discharge minus the next station's suction.
+      Verify that definition before trusting anything built on it. Range scales with throughput
+      and segment length, so it is asset-specific and carries no class band.
+
+  - id: theo_drop
+    description: Darcy-Weisbach predicted pressure drop for the segment at current conditions
+    kind: calculated
+    quantity: differential_pressure
+    units: psi
+    control_role: IND
+    source: >
+      Darcy-Weisbach with Colebrook friction factor (Menon, Liquid Pipeline Hydraulics, Ch.3;
+      Colebrook, J.Inst.Civ.Eng 1939). Range is asset-specific; no class band.
+
+  - id: residual
+    description: Unexplained pressure drop, actual minus theoretical
+    kind: calculated
+    quantity: differential_pressure
+    units: psi
+    control_role: IND
+    source: >
+      Residual method; a calibrated hydraulic model should centre the residual near zero (Liou,
+      J.Fluids Eng 1998, leak and blockage detection by model residual). Deliberately carries NO
+      `normal` band at any layer: a fixed psi window is rate-biased, because the same fractional
+      model error is a small number of psi at low rate and a large one at high rate. The band
+      lives on residual_pct instead.
+
+  - id: line_diameter
+    description: Internal diameter of the downstream segment
+    kind: manual
+    quantity: position
+    units: in
+    limits: {lo: 2, hi: 60}
+    required: false
+    control_role: IND
+    source: >
+      An asset record value, not a measurement. Supplied by the deployment as a constant column
+      so the Reynolds number is computed from the real line rather than an assumed one. Absent,
+      `reynolds` is not computed and is reported as a gap: a Reynolds number built on a guessed
+      diameter is worse than none, because it looks like a measurement.
+
+  - id: status
+    description: Physics calculation validity flag
+    kind: status
+    quantity: dimensionless
+    units: flag
+    required: false
+    source: "Source system physics status column"
+
+derived:
+  - id: pump_head
+    expr: "(discharge_pressure - suction_pressure) * 2.31 / specific_gravity"
+    units: ft
+    description: Total dynamic head developed by the station
+    source: "H(ft) = dP(psi) x 2.31 / SG, standard pump head conversion (Karassik, Pump Handbook, 4ed, Ch.2)"
+
+  - id: flow_gpm
+    expr: "flow * 42.0 / 1440.0"
+    units: gpm
+    description: Throughput converted to gpm for pump curve work
+    source: "1 bbl = 42 US gal; 1 day = 1440 min"
+
+  - id: reynolds
+    expr: "92.24 * flow / (line_diameter * viscosity)"
+    units: dimensionless
+    description: Reynolds number for the downstream segment
+    source: "Re = 92.24 x Q(bpd) / (D(in) x nu(cSt)) (Menon, Liquid Pipeline Hydraulics, Eq 3.16)"
+
+  - id: residual_pct
+    expr: "100.0 * residual / theo_drop"
+    units: percent
+    description: Residual normalised by predicted drop, comparable across flow rates
+    normal: [-5, 5]
+    band_type: normative
+    source: >
+      Normalisation is required because theo_drop scales ~Q^1.8, so an absolute psi threshold is
+      rate-biased. The +/-5 percent band is a MODEL QUALITY TARGET and is class knowledge, not an
+      observation: a Colebrook friction model with a correctly tuned roughness reproduces measured
+      drop to within a few percent (Menon Ch.3). Exceeding it means the model is wrong or the line
+      is restricted. The band must not be widened to fit the data, and an overlay that narrows it
+      is tightening a spec, which is the only legitimate direction.
+
+invariants:
+  - id: residual_identity
+    kind: identity
+    expr: "residual == actual_drop - theo_drop"
+    tol_abs: 0.05
+    severity: high
+    source: "Definition of the residual. A break here means the source-system formula is wrong or columns are misaligned."
+
+  - id: pump_adds_head
+    kind: inequality
+    expr: "discharge_pressure > suction_pressure"
+    severity: critical
+    source: "A running centrifugal pump always raises pressure. Violation means a swapped tag, a signed unit error, or an offline pump."
+
+  - id: drop_scales_with_flow
+    kind: power_law
+    expr: "actual_drop ~ flow ** n"
+    expected: 1.8
+    tol: 0.25
+    severity: medium
+    source: "Turbulent friction in a fixed line gives n ~= 1.8 (Darcy-Weisbach with Colebrook, Menon Ch.3). n far from 1.75-1.95 means the friction model, the diameter, or the flow meter is wrong."
+
+  - id: head_flow_monotonic
+    kind: monotonic
+    expr: "pump_head decreasing in flow_gpm"
+    tol: 0.20
+    severity: medium
+    requires_roles: [pump_speed, pumps_running]
+    source: >
+      The centrifugal pump H-Q curve falls with flow (Karassik, Pump Handbook Ch.2) BUT ONLY at
+      constant speed and a fixed number of pumps online. A mainline station raises head precisely
+      in order to push more barrels, by starting another pump or ramping a VFD, so head and flow
+      rise together and a strongly POSITIVE rank correlation is the normal operating signature,
+      not a violation. The invariant is therefore gated on a speed or pump-count role. Without
+      one, the station's operating points trace the SYSTEM curve rather than the pump curve, and
+      the H-Q relationship is not observable from the data at all.
+
+  - id: residual_centred
+    kind: range
+    expr: "mean(residual_pct) in [-3, 3]"
+    window: full
+    severity: medium
+    source: "A calibrated hydraulic model is unbiased. Persistent bias is an uncalibrated roughness, an omitted elevation term, or real baseline deposition (Liou, J.Fluids Eng 1998)."
+
+confounders:
+  - id: flow_regime_shift
+    description: >
+      Throughput changed, so predicted and actual drop both move. Absolute residual grows with rate
+      even when the line is healthy, because a small friction-factor error is amplified by Q^1.8.
+    roles: [flow]
+    test: regime_shift
+    source: "Darcy-Weisbach rate dependence (Menon Ch.3)"
+
+  - id: viscosity_temperature
+    description: >
+      Colder crude is more viscous and drops more pressure. If the model uses a stale lab viscosity,
+      a seasonal temperature swing shows up as residual, not as a line problem.
+    roles: [temperature, viscosity]
+    test: correlates_with
+    source: "Viscosity-temperature dependence, ASTM D341 Walther equation"
+
+  - id: dra_change
+    description: >
+      Drag reducer suppresses friction. A dose change or injection outage moves actual drop within
+      hours with no change in the line itself. Ruling this out is mandatory before calling deposition.
+    roles: [dra_ppm]
+    test: step_change
+    source: "Burger, Chung & Munk, SPE 9419 (presented 1980, J.Pet.Tech 1982)"
+
+  - id: batch_interface
+    description: >
+      A different crude batch changes SG and viscosity together. On a batched line the interface
+      passes each station in turn, so the signature migrates downstream with transit time.
+    roles: [specific_gravity, viscosity]
+    test: step_change
+    source: "Batched product pipeline operation (Menon Ch.10)"
+
+  - id: lab_staleness
+    description: >
+      SG and viscosity are lab assays held constant between samples. The theoretical drop inherits
+      that staleness, so residual carries a sawtooth that resets at each new assay. This is a model
+      artifact, not a line condition.
+    roles: [specific_gravity, viscosity]
+    test: zero_order_hold
+    source: "Zero-order-hold artifact of merging lab cadence into a faster SCADA frame"
+
+failure_modes:
+  - id: wax_deposition
+    name: Wax / paraffin deposition narrowing the effective bore
+    severity: high
+    onset: weeks
+    signature:
+      residual: up
+      actual_drop: up
+      theo_drop: unchanged
+      temperature: down
+    confounders: [viscosity_temperature, flow_regime_shift, dra_change]
+    discriminators:
+      - "Onset is weeks of sustained positive slope, not a step. A step is DRA or a valve."
+      - "Survives regime conditioning: residual_pct trends up within a fixed flow band."
+      - "Worsens as temperature approaches the crude cloud point; partially reverses after a pig run."
+    verify_in_field:
+      - "Pull pig run records and compare residual before and after."
+      - "Check crude cloud point against current line temperature."
+    source: "Wax deposition below cloud point restricting effective diameter (Burger, Chung & Munk, SPE 9419, presented 1980, J.Pet.Tech 1982; Menon Ch.2)"
+
+  - id: dra_injection_loss
+    name: DRA injection failure or dose reduction
+    severity: medium
+    onset: hours
+    signature:
+      residual: sharp_up
+      actual_drop: sharp_up
+      dra_ppm: down
+    confounders: [flow_regime_shift]
+    discriminators:
+      - "The DRA tag corroborates within the same sample. If dra_ppm is flat, this is not the cause."
+      - "Step onset in hours, versus weeks for deposition."
+    verify_in_field:
+      - "Check DRA skid tank level, pump status, and injection rate log."
+    source: "Burger, Chung & Munk, SPE 9419 (presented 1980, J.Pet.Tech 1982)"
+
+  - id: partial_restriction
+    name: Partially closed valve or foreign object restriction
+    severity: high
+    onset: instant
+    signature:
+      residual: sharp_up
+      actual_drop: sharp_up
+      dra_ppm: unchanged
+      temperature: unchanged
+    confounders: [dra_change, flow_regime_shift]
+    discriminators:
+      - "Step with no DRA, temperature, or batch explanation, confined to one segment."
+      - "Neighbouring segments show no corresponding change."
+    verify_in_field:
+      - "Confirm mainline and station bypass valve positions against SCADA feedback."
+    source: "Model-residual blockage detection (Liou, J.Fluids Eng 1998)"
+
+  - id: transmitter_drift
+    name: Suction or discharge pressure transmitter calibration drift
+    severity: medium
+    onset: weeks
+    signature:
+      residual: up
+      pump_head: up
+      flow: unchanged
+    confounders: [lab_staleness, flow_regime_shift]
+    differentials: [wax_deposition]
+    discriminators:
+      - "Pump head and segment residual move together, which physics does not require. Deposition moves residual but leaves head at matched flow alone."
+      - "Only one of the two pressure tags drifts; the other is stable."
+      - "The adjacent station's hydraulics do not corroborate."
+    verify_in_field:
+      - "Compare transmitter against a calibrated test gauge; pull the last calibration date."
+    source: "Instrument drift as a confounder in model-based monitoring (Isermann, Fault-Diagnosis Systems, 2006, Ch.7)"
+
+  - id: pump_wear
+    name: Impeller or wear-ring degradation
+    severity: medium
+    onset: months
+    signature:
+      pump_head: down
+      flow: unchanged
+      discharge_pressure: down
+    confounders: [flow_regime_shift, batch_interface]
+    differentials: [transmitter_drift]
+    discriminators:
+      - "Head deficit is measured at MATCHED flow. Comparing raw head across different rates is meaningless."
+      - "Segment residual is unaffected; this is a station problem, not a line problem."
+      - "A 3 percent or greater sustained head deficit at matched flow is actionable."
+    verify_in_field:
+      - "Trend motor amps at matched flow; confirm with a vibration survey and a wear-ring clearance check at next overhaul."
+    source: "Centrifugal wear degradation and clearance loss (Karassik, Pump Handbook 4ed, Ch.2 and Ch.12)"
+
+  - id: suction_starvation
+    name: Low suction pressure approaching cavitation
+    severity: critical
+    onset: hours
+    signature:
+      suction_pressure: down
+      discharge_pressure: erratic
+      pump_head: erratic
+    confounders: [flow_regime_shift]
+    discriminators:
+      - "Discharge variance rises sharply while suction falls. Cavitation is an erratic signature, not a clean step."
+    verify_in_field:
+      - "Compare NPSH available against the pump NPSHr curve at current flow and temperature."
+    source: "NPSH margin and cavitation (Karassik, Pump Handbook 4ed, Ch.2; ANSI/HI 9.6.1)"
+
+regimes:
+  - id: flow_band
+    by: flow
+    method: bin
+    params: {width: 10000, units: BPD}
+
+checks:
+  enabled:
+    - dq_timestamp_regularity
+    - dq_duplicate_series
+    - dq_partial_rows
+    - dq_flatline
+    - dq_zero_order_hold
+    - dq_rail_saturation
+    - dq_missing
+    - phys_range
+    - rel_identity
+    - rel_inequality
+    - rel_power_law
+    - rel_monotonic
+    - stat_residual_bias
+    - stat_regime_drift
+    - stat_changepoint
+    - stat_detector_firing_rate
+    - sme_head_deficit_at_matched_flow
+    - sme_signature_match
+
+notes: >
+  Scope. This card covers one station and the segment below it. Leak detection is deliberately out
+  of scope: model-based CPM needs station-to-station mass balance and a transient hydraulic model,
+  and a residual trend is not a substitute for either.
+
+  Bands. This card intentionally carries no descriptive operating bands. Every operating envelope
+  is a property of one asset (its line size, its elevation profile, its nomination schedule, its
+  crude slate) and belongs in the deployment profile's calibration overlay. Calibrating those bands
+  from a single asset over a single year describes that asset, and the overlay's `source` must say
+  which asset and which period. Exclude rail-pinned samples when calibrating; dq_rail_saturation
+  reports them for exactly this reason.
+
+  Geometry. Segment length and elevation profile are not represented here, and an omitted static
+  head term is a standing candidate explanation for persistent residual bias. `line_diameter` is
+  declared as an optional manual role rather than baked into the Reynolds formula, so a deployment
+  that cannot supply it gets a reported gap instead of a number computed from an assumed line. If
+  either is available in the asset record, supply it and say so in the profile.
+
+  The two contradictions this card is built to surface rather than hide: a viscosity tag that
+  changes every sample is not an assay and cannot serve as independent evidence for the
+  lab_staleness confounder; and a DRA tag that never changes cannot exclude dra_change, so any
+  failure mode listing it as a confounder is unconfirmable on that dataset. Both must be reported
+  as such rather than resolved by assumption.

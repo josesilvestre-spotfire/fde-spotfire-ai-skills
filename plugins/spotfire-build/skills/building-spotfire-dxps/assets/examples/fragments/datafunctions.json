@@ -1,0 +1,130 @@
+{
+  "specVersion": 1,
+  "markings": [
+    {"name": "Selected Pump", "color": "#E94165", "default": true}
+  ],
+  "filteringSchemes": [
+    {"name": "Fleet Filters", "default": false}
+  ],
+  "properties": [
+    {"name": "SelectedPumpId", "type": "String", "default": "P-101",
+     "description": "Pump whose curve-fit quality is reported in OutCurveR2", "listValued": false},
+    {"name": "MotorCurrentLimit", "type": "Real", "default": 120.0,
+     "description": "Motor current (A) above which a pump is overloaded: opens events and costs health score", "listValued": false},
+    {"name": "OutCurveR2", "type": "Real", "default": 0.0,
+     "description": "R squared of the selected pump's head-flow curve, written by Calculate Pump Curves", "listValued": false},
+    {"name": "OutWorstPumpId", "type": "String", "default": "",
+     "description": "Pump with the lowest health score, written by Score Pump Health", "listValued": false}
+  ],
+  "tables": [
+    {
+      "name": "PUMP_CURVES",
+      "source": {"type": "dataFunction", "function": "Calculate Pump Curves", "output": "PUMP_CURVES"},
+      "description": "One row per pump: head-flow curve coefficients fitted from the rows that pass Fleet Filters.",
+      "columns": {
+        "R Squared": {"description": "Coefficient of determination of the pump's curve fit", "format": "0.000"},
+        "Shutoff Head (ft)": {"description": "Fitted head at zero flow", "format": "#,##0.0"}
+      }
+    },
+    {
+      "name": "PUMP_HEALTH",
+      "source": {"type": "dataFunction", "function": "Score Pump Health", "output": "PUMP_HEALTH"},
+      "description": "One row per pump with a fitted curve: 0-100 health score, its drivers and the rank (1 = least healthy).",
+      "columns": {
+        "Health Score": {"description": "100 minus the curve, load and trip penalties", "format": "0.0"},
+        "Load Ratio": {"description": "95th percentile motor current divided by MotorCurrentLimit", "format": "0.00"},
+        "Next Review": {"description": "Date of the next engineering review (as-of date plus 7 days)"}
+      }
+    }
+  ],
+  "dataFunctions": [
+    {
+      "name": "Score Pump Health",
+      "description": "Ranks the pumps by a 0-100 health score from the curve fit, the motor current of the rows in the active filter and the share of tripped samples. Reads PUMP_CURVES, so the builder runs Calculate Pump Curves first.",
+      "engine": "python",
+      "script": "datafunctions/score_pump_health.py",
+      "inputs": [
+        {"name": "PUMP_CURVES", "type": "table", "description": "Curve fits written by Calculate Pump Curves",
+         "bind": {"table": "PUMP_CURVES", "columns": "*", "limitByFiltering": null, "limitByMarking": null}},
+        {"name": "operatingData", "type": "table", "description": "Operating rows that pass the active filtering scheme",
+         "bind": {"table": "PUMP_DATA", "columns": ["Pump ID", "Motor Current (A)", "Status"],
+                  "limitByFiltering": true, "limitByMarking": null}},
+        {"name": "fleetCurrent", "type": "column", "dataTypes": ["Real"],
+         "description": "Motor current of the rows that pass Fleet Filters (fleet reference)",
+         "bind": {"table": "PUMP_DATA", "column": "Motor Current (A)", "limitByFiltering": "Fleet Filters"}},
+        {"name": "MotorCurrentLimit", "type": "value", "dataTypes": ["Real"],
+         "bind": {"property": "MotorCurrentLimit"}},
+        {"name": "fleetAvgCurrent", "type": "value", "dataTypes": ["Real"],
+         "description": "Average motor current of the rows in the active filter",
+         "bind": {"expression": "Avg([PUMP_DATA].[Motor Current (A)])", "limitByFiltering": true}},
+        {"name": "reviewWindow", "type": "value", "dataTypes": ["TimeSpan"],
+         "description": "Time from the as-of date to the next review", "bind": {"value": "7.00:00:00"}},
+        {"name": "asOfDate", "type": "value", "dataTypes": ["Date"],
+         "description": "Date the score refers to", "bind": {"value": "2026-06-30"}}
+      ],
+      "outputs": [
+        {"name": "PUMP_HEALTH", "type": "table", "description": "One row per pump with a fitted curve",
+         "target": {"table": "PUMP_HEALTH"}},
+        {"name": "OutWorstPumpId", "type": "value", "description": "Pump with the lowest health score",
+         "target": {"property": "OutWorstPumpId"}}
+      ],
+      "refresh": "automatic",
+      "executeAtBuild": true,
+      "settings": {"Visible": true}
+    },
+    {
+      "name": "Calculate Pump Curves",
+      "description": "Fits a head-flow curve per pump from the rows that pass Fleet Filters and reports the fit quality of the selected pump.",
+      "engine": "python",
+      "script": "datafunctions/calculate_pump_curves.py",
+      "inputs": [
+        {"name": "PUMP_DATA", "type": "table", "description": "Operating rows that pass Fleet Filters",
+         "bind": {"table": "PUMP_DATA", "columns": "*", "limitByFiltering": "Fleet Filters", "limitByMarking": null}},
+        {"name": "flowRate", "type": "column", "dataTypes": ["Real"],
+         "description": "Flow of every row (fleet reference for the median flow)",
+         "bind": {"table": "PUMP_DATA", "column": "Flow Rate (bbl/d)"}},
+        {"name": "SelectedPumpId", "type": "value", "dataTypes": ["String"],
+         "bind": {"property": "SelectedPumpId"}},
+        {"name": "minPoints", "type": "value", "dataTypes": ["Integer"],
+         "description": "Fewest rows a pump needs for a curve", "bind": {"value": 20}},
+        {"name": "specificGravity", "type": "value", "dataTypes": ["Real"],
+         "description": "Specific gravity of the pumped liquid", "bind": {"value": 0.85}},
+        {"name": "fitMethod", "type": "value", "dataTypes": ["String"],
+         "description": "quadratic or linear", "bind": {"value": "quadratic"}},
+        {"name": "excludeTripped", "type": "value", "dataTypes": ["Boolean"],
+         "description": "Drop rows whose Status is Tripped", "bind": {"value": true}},
+        {"name": "maxFlow", "type": "value", "dataTypes": ["Real"],
+         "description": "Highest flow in PUMP_DATA, where the curve head is evaluated",
+         "bind": {"expression": "Max([PUMP_DATA].[Flow Rate (bbl/d)])"}}
+      ],
+      "outputs": [
+        {"name": "PUMP_CURVES", "type": "table", "description": "One row per pump with enough points",
+         "target": {"table": "PUMP_CURVES"}},
+        {"name": "OutCurveR2", "type": "value", "description": "R squared of the selected pump's curve",
+         "target": {"property": "OutCurveR2"}}
+      ],
+      "refresh": "automatic",
+      "executeAtBuild": true
+    },
+    {
+      "name": "Detect Pump Events",
+      "description": "Rebuilds PUMP_EVENTS from over-current episodes in the marked pump rows. Not run at build: refresh it from Data > Data function properties after marking pumps.",
+      "engine": "terr",
+      "script": "datafunctions/detect_pump_events.R",
+      "inputs": [
+        {"name": "pumpData", "type": "table", "description": "Rows marked in Selected Pump",
+         "bind": {"table": "PUMP_DATA", "columns": "*", "limitByFiltering": null, "limitByMarking": "Selected Pump"}},
+        {"name": "MotorCurrentLimit", "type": "value", "dataTypes": ["Real"],
+         "bind": {"property": "MotorCurrentLimit"}},
+        {"name": "historyStart", "type": "value", "dataTypes": ["DateTime"],
+         "description": "Samples before this time are ignored", "bind": {"value": "2026-01-01T00:00:00"}}
+      ],
+      "outputs": [
+        {"name": "PUMP_EVENTS", "type": "table", "description": "Replaces the rows of the loaded events table",
+         "target": {"table": "PUMP_EVENTS"}}
+      ],
+      "refresh": "manual",
+      "executeAtBuild": false
+    }
+  ]
+}

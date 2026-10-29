@@ -1,0 +1,31 @@
+{
+ "app": "Line Pressure Profile",
+ "status": "checkpoint 1 confirmed by the owner (synthetic example)",
+ "goal": "Estimate the pressure at the outlet of each segment of a liquid line for a given flow rate, fluid and pipe age, and the total pressure drop of the line.",
+ "users": [
+  {"role": "Pipeline engineer", "use": "Types the flow and fluid inputs, pastes new segment data after a survey, reads the outlet pressure."},
+  {"role": "Operations planner", "use": "Asks the engineer whether a planned rate keeps the outlet pressure above the delivery minimum."}
+ ],
+ "decisions": [
+  "Can the line carry the planned flow rate with enough outlet pressure?",
+  "Which segments cause most of the pressure loss?"
+ ],
+ "manualSteps": [
+  "Paste the segment survey into the Segments sheet.",
+  "Pick the roughness by pipe age from the Lookups sheet (done by the VLOOKUP).",
+  "Copy the summary values into the weekly report."
+ ],
+ "blocks": {
+  "B004": {"name": "Pipe roughness", "unit": "in", "equation": "eps = VLOOKUP(age, roughness table, 2)", "meaning": "Absolute roughness for the pipe age.", "logicId": "L01"},
+  "B016": {"name": "Velocity", "unit": "ft/s", "equation": "v = Q * 5.615 / 86400 / (pi * (D/12)^2 / 4)", "meaning": "Mean velocity from the volumetric flow rate.", "logicId": "L02"},
+  "B017": {"name": "Reynolds number", "unit": "dimensionless", "equation": "Re = 1488 * rho * v * D/12 / mu", "meaning": "Flow regime.", "logicId": "L03"},
+  "B018": {"name": "Friction factor", "unit": "dimensionless", "equation": "f = 0.25 / log10(eps/(3.7 D) + 5.74/Re^0.9)^2", "meaning": "Swamee-Jain approximation of the Colebrook equation.", "logicId": "L04"},
+  "B019": {"name": "Friction loss", "unit": "psi", "equation": "dPf = f * L/(D/12) * rho * v^2 / (2 g) / 144", "meaning": "Darcy-Weisbach friction loss of the segment.", "logicId": "L05"},
+  "B020": {"name": "Elevation loss", "unit": "kPa", "equation": "dPe = rho * dz / 144 * 6.894757", "meaning": "Hydrostatic head of the elevation change, converted to kPa.", "logicId": "L06"},
+  "B021": {"name": "Segment drop", "unit": "psi", "equation": "dP = dPf + dPe", "meaning": "Adds psi and kPa (issue I04).", "logicId": "L07"},
+  "B025": {"name": "Outlet pressure", "unit": "psi", "equation": "P(n) = P(n-1) - dP(n)", "meaning": "Running pressure along the line.", "logicId": "L08"}
+ },
+ "questions": [
+  {"question": "Is the roughness table meant to be sorted by age?", "blocking": false, "about": "Lookups!A3:B7"}
+ ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "spotfire-domain-context",
+  "version": "0.1.0-alpha.1",
+  "description": "Engineering knowledge for understanding an app's goal and checking its results: process time series analysis, midstream unit knowledge, synthetic process data and analytics models.",
+  "author": {
+    "name": "josesilvestre-spotfire"
+  },
+  "keywords": [
+    "spotfire",
+    "time-series",
+    "process-engineering",
+    "midstream",
+    "synthetic-data"
+  ]
+}

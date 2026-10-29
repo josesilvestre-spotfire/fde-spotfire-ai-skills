@@ -1,0 +1,3 @@
+HtmlTextArea.HtmlContent
+Visual.Title
+Visual.ShowTitle

@@ -1,0 +1,250 @@
+card_version: "1.0"
+unit_id: teg-dehydration
+unit_class: dehydration_teg
+service: >
+  Triethylene glycol (TEG) dehydration for pipeline water dew point control: a contactor
+  absorbs water from the gas into lean glycol, and a reboiler (often with stripping gas)
+  regenerates the glycol. The analysable quantity is the outlet water dew point read against
+  lean glycol purity and reboiler temperature.
+persona: gas_treating_engineer
+description: >
+  DRAFT CARD, pending SME review. Written from the process reference in this skill
+  (references/unit-reference.md, dehydration). It validates against the engine schema but has
+  never been run against plant data, and every failure mode is marked UNVERIFIED until a
+  process engineer confirms it.
+
+  TEG cannot reach cryogenic dryness. A unit feeding a cryogenic plant uses mol sieve
+  adsorption, which cycles through adsorption and regeneration and needs cycle position as a
+  regime. This card does not cover it.
+
+  The pipeline water spec is contractual (commonly quoted on the order of 7 lb per MMscf, but
+  contract specific), so it comes from the deployment profile as a normative band.
+
+topology:
+  upstream: [amine_treating, inlet_separator]
+  downstream: [sales_pipeline, compression]
+
+roles:
+  - id: inlet_gas_flow
+    description: Wet gas rate into the contactor
+    kind: sensor
+    quantity: flow
+    units: MMscfd
+    limits: {lo: 0}
+    control_role: DV
+    source: "Negative gas rate is not a measurement. Asset-specific range."
+
+  - id: design_gas_flow
+    description: Design gas rate of the unit, supplied by the deployment as a constant column
+    kind: manual
+    quantity: flow
+    units: MMscfd
+    limits: {lo: 0}
+    control_role: IND
+    source: "An asset record value that makes the rate regime scale-free. Required: without it there is no rate regime."
+
+  - id: inlet_gas_temperature
+    description: Wet gas temperature at the contactor inlet
+    kind: sensor
+    quantity: temperature
+    units: degF
+    control_role: DV
+    source: "Inlet gas is water saturated, so its temperature and pressure set the water load. Asset-specific range."
+
+  - id: inlet_gas_pressure
+    description: Contactor operating pressure
+    kind: sensor
+    quantity: pressure
+    units: psig
+    control_role: DV
+    source: "Lower pressure means more water per unit of gas at saturation. Asset-specific range."
+
+  - id: outlet_dew_point
+    description: Water dew point of the dried gas
+    kind: sensor
+    quantity: dew_point
+    units: degF
+    control_role: IND
+    source: >
+      Analyser value. Record the pressure basis the analyser reports at; a dew point quoted at
+      a different pressure is a different number. The spec is contractual and comes from the
+      profile.
+
+  - id: lean_glycol_flow
+    description: Lean glycol circulation rate
+    kind: sensor
+    quantity: flow
+    units: gpm
+    limits: {lo: 0}
+    control_role: MV
+    source: >
+      Circulation is the manipulated variable. A ratio of roughly 2 to 3 gallons of TEG per
+      pound of water removed is a commonly quoted rule of thumb and is UNVERIFIED for any asset.
+
+  - id: lean_glycol_purity
+    description: TEG concentration of the lean glycol
+    kind: lab
+    quantity: concentration
+    units: wt%
+    limits: {lo: 0, hi: 100}
+    control_role: IND
+    source: "Lab assay; lean purity is what does the drying. A mass fraction lies between 0 and 100 percent. Set update_interval in the overlay."
+
+  - id: reboiler_temperature
+    description: Glycol reboiler temperature
+    kind: sensor
+    quantity: temperature
+    units: degF
+    control_role: CV
+    source: >
+      Bounded below by the lean purity it must reach and above by thermal degradation of TEG,
+      commonly quoted as roughly 400 F. That figure is UNVERIFIED; take the limit from the
+      unit's design basis and put it in the profile.
+
+  - id: stripping_gas_flow
+    description: Stripping gas to the reboiler or stripping column
+    kind: sensor
+    quantity: flow
+    units: Mscfd
+    limits: {lo: 0}
+    control_role: MV
+    required: false
+    source: "Raises lean purity above what reboiler temperature alone reaches. Negative flow is not a measurement."
+
+  - id: contactor_dp
+    description: Differential pressure across the glycol contactor
+    kind: sensor
+    quantity: differential_pressure
+    units: psi
+    control_role: IND
+    required: false
+    source: "Scales with gas rate; compared within rate regimes only."
+
+  - id: glycol_makeup_flow
+    description: Glycol makeup to the inventory
+    kind: sensor
+    quantity: flow
+    units: gpm
+    limits: {lo: 0}
+    control_role: IND
+    required: false
+    source: "Makeup that rises without an inventory change evidences glycol loss."
+
+derived:
+  - id: feed_rate_pct
+    expr: "100.0 * inlet_gas_flow / design_gas_flow"
+    units: percent
+    description: Gas rate as a percentage of design, the scale-free rate regime
+    source: "Definition."
+
+  - id: dew_point_depression
+    expr: "inlet_gas_temperature - outlet_dew_point"
+    units: degF
+    description: How far below the saturated inlet temperature the dried gas dew point sits
+    source: "Definition. Only meaningful when the analyser reports at contactor pressure."
+
+  - id: circulation_per_gas
+    expr: "lean_glycol_flow / inlet_gas_flow"
+    units: gpm per MMscfd
+    description: Glycol circulated per unit of gas treated
+    source: "Definition."
+
+invariants:
+  - id: gas_is_dried
+    kind: inequality
+    expr: "outlet_dew_point < inlet_gas_temperature"
+    severity: medium
+    source: >
+      The inlet gas is water saturated at its own temperature, and dehydration lowers the dew
+      point. A violation means a swapped tag, an analyser fault, or a dew point reported at a
+      different pressure basis.
+
+confounders:
+  - id: gas_rate_change
+    description: Gas rate changed, so contactor loading and dP moved with it.
+    roles: [inlet_gas_flow]
+    test: regime_shift
+    source: "Process reference, dehydration"
+
+  - id: inlet_water_load
+    description: >
+      Hotter or lower-pressure inlet gas carries more water, so the outlet dew point rises with
+      no glycol-side fault. Exclude it first.
+    roles: [inlet_gas_temperature, inlet_gas_pressure]
+    test: correlates_with
+    source: "Process reference, dehydration"
+
+  - id: circulation_change
+    description: An operator change in circulation moves the dew point with no fault.
+    roles: [lean_glycol_flow]
+    test: step_change
+    source: "Process reference, dehydration"
+
+  - id: lab_staleness
+    description: Lean purity is a lab assay held constant between samples.
+    roles: [lean_glycol_purity]
+    test: zero_order_hold
+    source: "Zero-order-hold artifact of merging lab cadence into a faster SCADA frame"
+
+failure_modes:
+  - id: low_lean_glycol_purity
+    name: Low lean glycol purity
+    severity: high
+    onset: days
+    signature:
+      reboiler_temperature: down
+      outlet_dew_point: up
+      lean_glycol_purity: down
+    confounders: [inlet_water_load, circulation_change, lab_staleness]
+    discriminators:
+      - "Inlet water load is a function of inlet temperature and pressure and must be excluded first."
+      - "Purity falls with reboiler temperature or stripping gas; a dew point rise at constant purity points elsewhere."
+    verify_in_field:
+      - "Check reboiler firing or heating medium, stripping gas rate, and the still column."
+    source: "UNVERIFIED: process reference (dehydration), pending SME review"
+
+  - id: glycol_carryover_losses
+    name: Glycol losses by carryover from the contactor
+    severity: medium
+    onset: weeks
+    signature:
+      glycol_makeup_flow: up
+      contactor_dp: up
+    confounders: [gas_rate_change]
+    discriminators:
+      - "Carryover has a dP signature; vaporisation losses do not. A makeup rise with dP unchanged points to vaporisation or a leak."
+      - "Rule out an unlogged inventory change or drain before calling a loss."
+    verify_in_field:
+      - "Check the contactor mist eliminator and downstream scrubbers for glycol."
+    source: "UNVERIFIED: process reference (dehydration), pending SME review"
+
+regimes:
+  - id: rate_band
+    by: feed_rate_pct
+    method: bin
+    params: {width: 10, units: percent of design}
+
+checks:
+  enabled:
+    - dq_timestamp_regularity
+    - dq_duplicate_series
+    - dq_partial_rows
+    - dq_flatline
+    - dq_zero_order_hold
+    - dq_rail_saturation
+    - dq_missing
+    - phys_range
+    - rel_inequality
+    - stat_regime_drift
+    - stat_changepoint
+    - stat_detector_firing_rate
+    - sme_signature_match
+
+notes: >
+  Draft card generated from the process reference and pending SME review. Not run against
+  plant data. Only two failure modes are carried because the process reference lists only
+  two for TEG; foaming, glycol degradation and stripping column faults are not yet covered.
+
+  Water content of the inlet gas is not computed: that needs a water content correlation
+  over temperature and pressure, which is out of scope for a card. Supply it as a calculated
+  role if the source system has it.

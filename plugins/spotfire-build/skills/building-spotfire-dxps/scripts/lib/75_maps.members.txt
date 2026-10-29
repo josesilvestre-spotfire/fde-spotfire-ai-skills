@@ -1,0 +1,106 @@
+# Public Spotfire members touched by lib/75_maps.py
+# check: python scripts/sfapi.py has --stdin < lib/75_maps.members.txt
+# (layer `settings` paths come from the spec and are checked by dxpgen, not listed here)
+
+# imported types
+Spotfire.Dxp.Application.Visuals.VisualTypeIdentifiers
+Spotfire.Dxp.Application.Visuals.PositioningMethod
+Spotfire.Dxp.Application.Visuals.Maps.MapChart
+Spotfire.Dxp.Application.Visuals.Maps.MarkerLayerVisualization
+Spotfire.Dxp.Application.Visuals.Maps.FeatureLayerVisualization
+Spotfire.Dxp.Data.DataProperty
+Spotfire.Dxp.Data.DataPropertyAttributes
+Spotfire.Dxp.Data.DataPropertyClass
+Spotfire.Dxp.Data.DataType
+Spotfire.Dxp.Data.LimitingMarkingsEmptyBehavior
+
+# vis_map: create the visual
+Spotfire.Dxp.Application.Page.Visuals
+Spotfire.Dxp.Application.VisualCollection.AddNew(TypeIdentifier)
+Spotfire.Dxp.Application.Visuals.VisualTypeIdentifiers.MapChart2
+Spotfire.Dxp.Application.Visual.As()
+Spotfire.Dxp.Application.Visuals.Maps.MapChart.Layers
+Spotfire.Dxp.Application.Visuals.Maps.MapChartLayerCollection.Count
+Spotfire.Dxp.Application.Visuals.Maps.MapChartLayerCollection.Clear()
+
+# _maps_add_layer
+Spotfire.Dxp.Application.Visuals.Maps.MapChartLayerCollection.AddNewStandardTileLayer()
+Spotfire.Dxp.Application.Visuals.Maps.MapChartLayerCollection.AddNewMarkerLayer(DataTable, out MarkerLayerVisualization)
+Spotfire.Dxp.Application.Visuals.Maps.MapChartLayerCollection.AddNewFeatureLayer(DataTable, out FeatureLayerVisualization)
+Spotfire.Dxp.Application.Visuals.Maps.MapChartDataLayer.As()
+Spotfire.Dxp.Application.Visuals.Maps.MapChartLayer.Title
+Spotfire.Dxp.Application.Visuals.Maps.StandardTileLayer.Title
+Spotfire.Dxp.Application.Visuals.Maps.MapChartDataLayer.Title
+Spotfire.Dxp.Data.DataTable.Name
+
+# _maps_position_markers / _maps_find_position
+Spotfire.Dxp.Application.Visuals.Maps.MarkerLayerVisualization.PositioningMethod
+Spotfire.Dxp.Application.Visuals.PositioningMethod.LongitudeLatitude
+Spotfire.Dxp.Application.Visuals.Maps.MarkerLayerVisualization.XAxis
+Spotfire.Dxp.Application.Visuals.Maps.MarkerLayerVisualization.YAxis
+Spotfire.Dxp.Application.Visuals.ScaleAxis.Expression
+Spotfire.Dxp.Data.DataTable.Columns
+Spotfire.Dxp.Data.DataColumnCollection.GetEnumerator()
+Spotfire.Dxp.Data.DataColumn.Name
+Spotfire.Dxp.Data.DataColumn.NameEscapedForExpression
+Spotfire.Dxp.Data.DataColumn.DataType
+Spotfire.Dxp.Data.DataType.IsNumeric
+
+# _maps_line_connection / _maps_size_by / _maps_color_by
+Spotfire.Dxp.Application.Visuals.Maps.MarkerLayerVisualization.LineConnection
+Spotfire.Dxp.Application.Visuals.LineConnection.UseMarkerColor
+Spotfire.Dxp.Application.Visuals.LineConnection.Width
+Spotfire.Dxp.Application.Visuals.LineConnection.IsBackground
+Spotfire.Dxp.Application.Visuals.LineConnection.ConnectionAxis
+Spotfire.Dxp.Application.Visuals.CategoricalAxisBase.Expression
+Spotfire.Dxp.Application.Visuals.Maps.MarkerLayerVisualization.SizeAxis
+Spotfire.Dxp.Application.Visuals.SizeAxis.Expression
+Spotfire.Dxp.Application.Visuals.Maps.MarkerLayerVisualization.ColorAxis
+Spotfire.Dxp.Application.Visuals.Maps.FeatureLayerVisualization.ColorAxis
+Spotfire.Dxp.Application.Visuals.ColorAxis.Expression
+
+# feature layers: _maps_prepare_geometry / _maps_geometry_column / _maps_tag_geometry / _maps_geometry_by
+Spotfire.Dxp.Data.DataColumnCollection.TryGetValue(String, out DataColumn)
+Spotfire.Dxp.Data.DataType.Name
+Spotfire.Dxp.Data.DataType.Binary
+Spotfire.Dxp.Data.DataType.String
+Spotfire.Dxp.Application.Document.Data
+Spotfire.Dxp.Data.DataManager.Properties
+Spotfire.Dxp.Data.DataPropertyRegistry.ContainsProperty(DataPropertyClass, String)
+Spotfire.Dxp.Data.DataPropertyRegistry.AddProperty(DataPropertyClass, DataProperty)
+Spotfire.Dxp.Data.DataPropertyClass.Column
+Spotfire.Dxp.Data.DataProperty.DefaultAttributes
+Spotfire.Dxp.Data.DataPropertyAttributes.IsPropagated
+Spotfire.Dxp.Data.DataProperty.CreateCustomPrototype(String, DataType, DataPropertyAttributes)
+Spotfire.Dxp.Data.DataColumn.Properties
+Spotfire.Dxp.Data.DataColumnProperties.PropertyExists(String)
+Spotfire.Dxp.Data.DataColumnProperties.GetProperty(String)
+Spotfire.Dxp.Data.DataColumnProperties.SetProperty(String, Object)
+Spotfire.Dxp.Data.DataColumnProperties.ContentType
+Spotfire.Dxp.Application.Visuals.Maps.FeatureLayerVisualization.GeometryByAxis
+Spotfire.Dxp.Application.Visuals.GroupByAxis.Expression
+
+# _maps_set_marking / _maps_set_limits
+Spotfire.Dxp.Application.Visuals.Maps.MarkerLayerVisualization.Data
+Spotfire.Dxp.Application.Visuals.Maps.FeatureLayerVisualization.Data
+Spotfire.Dxp.Application.Visuals.VisualizationData.MarkingReference
+Spotfire.Dxp.Data.DataManager.Markings
+Spotfire.Dxp.Data.DataMarkingSelectionCollection.DefaultMarkingReference
+Spotfire.Dxp.Application.Visuals.VisualizationData.UseActiveFiltering
+Spotfire.Dxp.Application.Visuals.VisualizationData.Filterings
+Spotfire.Dxp.Application.Visuals.VisualizationFilteringCollection.Contains(DataSelection)
+Spotfire.Dxp.Application.Visuals.VisualizationFilteringCollection.Add(DataSelection)
+Spotfire.Dxp.Application.Visuals.VisualizationData.LimitingMarkingsEmptyBehavior
+Spotfire.Dxp.Data.LimitingMarkingsEmptyBehavior.ShowAll
+Spotfire.Dxp.Data.LimitingMarkingsEmptyBehavior.ShowEmpty
+Spotfire.Dxp.Data.LimitingMarkingsEmptyBehavior.ShowMessage
+Spotfire.Dxp.Application.Visuals.VisualizationData.WhereClauseExpression
+
+# _maps_set_interactive / _maps_set_trellis / _maps_set_zoom / _maps_record
+Spotfire.Dxp.Application.Visuals.Maps.MapChartLayer.Enabled
+Spotfire.Dxp.Application.Visuals.Maps.MapChart.InteractiveLayerReference
+Spotfire.Dxp.Application.Visuals.Maps.MapChart.TrellisLayerReference
+Spotfire.Dxp.Application.Visuals.Maps.MapChart.AutoZoom
+Spotfire.Dxp.Application.Visuals.Maps.MapChart.Data
+Spotfire.Dxp.Application.Visuals.VisualizationData.DataTableReference
+Spotfire.Dxp.Application.Visuals.Maps.MapChartLayerCollection.IndexOf(Spotfire.Dxp.Application.Visuals.Maps.MapChartLayer)

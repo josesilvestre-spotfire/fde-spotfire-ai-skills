@@ -1,0 +1,34 @@
+# Tag map: historian column names -> canonical role ids.
+#
+# Role ids come from the unit card and are plant-agnostic. Column names are whatever the
+# source system happens to call things, which is a deployment fact and belongs only here.
+#
+# `match: exact` is the default and the right choice whenever you know the column names.
+# The alternatives exist for exports where you do not:
+#
+#   suffix   column ends with the template     e.g. templates like ".PV" on a prefixed frame
+#   prefix   column starts with the template
+#   regex    re.fullmatch(template, column)
+#
+# `asset_pattern` is absent because this export holds one unit. Add it only when a single
+# frame carries several assets and the column names encode which; it must contain a named
+# group (?P<asset>...). Without it, `tssme assets` correctly reports no asset dimension
+# instead of inventing one.
+
+time_column: Timestamp
+match: exact
+
+roles:
+  inlet_pressure:  PI-1001.PV
+  outlet_pressure: PI-1002.PV
+  measured_dp:     PDI-1003.PV
+  predicted_dp:    PDI-1003.CALC
+  residual:        PDI-1003.RESID
+  flow:            FI-1004.PV
+  temperature:     TI-1005.PV
+  additive_ppm:    AI-1006.PV
+  density:         LAB.DENSITY
+
+# Columns matching this are treated as pre-existing detector/event flags rather than
+# measurements, and are audited for firing rate instead of being trended.
+detector_pattern: "^Events?\\s*-\\s*"

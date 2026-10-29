@@ -1,0 +1,58 @@
+# Schema extensions contributed by the midstream-process pack.
+#
+# These are the values this domain adds to the engine's extensible enums. The engine owns
+# the structure of a card (tssme/schema/core.yaml in the analyzing-process-time-series
+# skill); this file owns the vocabulary a midstream card may draw on.
+#
+# Only `unit_class`, `persona` and `quantity` are extensible. Enums the engine branches on
+# (severity, direction, band_type, onset, kind, control_role, invariant_kind) are method
+# properties, not domain properties, and a pack adding a value there would create a case
+# no check knows how to handle.
+
+extends: "1.0"
+
+enums:
+
+  unit_class:
+    - pump_station            # centrifugal pump plus the downstream pipeline segment
+    - pipeline_segment
+    - distillation_column     # demethanizer, deethanizer, depropanizer, debutanizer
+    - amine_contactor
+    - amine_regenerator
+    - amine_treating            # contactor, flash tank, lean/rich exchanger and regenerator as one loop
+    - dehydration_teg
+    - dehydration_mol_sieve
+    - inlet_separator
+    - compressor
+    - heat_exchanger
+    - turboexpander
+    - ngl_recovery              # cold box, turboexpander and demethanizer as one cryogenic train
+    - storage_tank
+
+  persona:
+    - pipeline_engineer            # hydraulics, batching, DRA, line integrity
+    - gas_treating_engineer        # amine treating and dehydration
+    - process_engineer_ngl         # separation, recovery, product spec
+    - rotating_equipment_engineer  # pumps, compressors, expanders, condition
+    - measurement_engineer         # meters, provers, allocation, data quality
+
+  quantity:
+    # Extends the engine's universal base (pressure, temperature, flow, level, power,
+    # speed, concentration, ratio, dimensionless, ...) with quantities that only mean
+    # something in a fluids/process context.
+    - head                    # pump head, ft or m of the fluid being pumped
+    - specific_gravity
+    - density
+    - viscosity
+    - molecular_weight
+    - heating_value
+    - dew_point
+    - vapor_fraction
+    - efficiency
+    - reflux_ratio
+    - loading                 # mol acid gas per mol amine
+
+hard_rules:
+  - "A hydrocarbon property (SG, viscosity, MW) is a composition statement. If the card treats it as a lab role, it will be zero-order-held in any export and everything derived from it inherits that staleness."
+  - "Composition is the hidden regime in every separation unit. A column, contactor or cold box compared across a feed composition change is being compared against a different unit."
+  - "Product specs are contractual. Never quote a typical value as though it applied to a specific plant; mark it UNVERIFIED and say it is contract-driven."

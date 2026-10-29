@@ -1,0 +1,13 @@
+# Vocabulary contributed by the example pack.
+#
+# Two values, both deliberately generic. A real pack contributes the equipment classes and
+# personas of its industry; the engine treats both identically.
+
+extends: "1.0"
+
+enums:
+  unit_class:
+    - flow_segment            # anything with an inlet, an outlet and a measured differential
+
+  persona:
+    - example_analyst

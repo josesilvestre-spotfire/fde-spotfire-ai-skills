@@ -1,0 +1,14 @@
+{
+  "name": "spotfire-reference",
+  "version": "0.1.0-alpha.1",
+  "description": "Lookups the other skills load when needed: proven Spotfire Analyst behaviour, naming standard, API index generator, Excel function map and the shared App Brief and Logic Spec formats.",
+  "author": {
+    "name": "josesilvestre-spotfire"
+  },
+  "keywords": [
+    "spotfire",
+    "reference",
+    "api",
+    "naming"
+  ]
+}

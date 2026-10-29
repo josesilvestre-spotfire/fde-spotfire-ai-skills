@@ -1,0 +1,7 @@
+# Public Spotfire properties assigned by lib/40_scripts.py
+# check: python scripts/sfapi.py has --set --stdin < lib/40_scripts.set.txt
+# ScriptDefinition, ScriptParameter and HtmlTextAreaScript are immutable and the module changes the
+# document only through methods (AddScriptDefinition, Replace, Scripts.Add/RemoveAt). The one
+# assignment is values[key] = ... in attach_js: the IDictionary<String, String> of parameter values
+# that HtmlTextAreaScript(ScriptDefinition, IDictionary<String, String>) takes (a BCL Dictionary).
+IDictionary<String, String>.Item

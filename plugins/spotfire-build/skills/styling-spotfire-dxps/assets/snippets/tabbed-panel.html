@@ -1,0 +1,38 @@
+<div class="app-ta">
+  <div class="tabbed-content">
+    <div class="tabs">
+      <ul>
+        <li><a href="#tabOverviewSteps" class="active">Steps</a></li>
+        <li><a href="#tabOverviewSettings">Settings</a></li>
+        <li><a href="#tabOverviewMethod">Method</a></li>
+      </ul>
+    </div>
+    <div id="tabOverviewSteps" class="item active">
+      <table class="table3" cellspacing="0" cellpadding="2">
+        <tbody>
+          <tr><td><ol><li>Pick a pump.</li><li>Set the target.</li><li>Press Run Analysis.</li></ol></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="tabOverviewSettings" class="item">
+      <table class="table3" cellspacing="0" cellpadding="2">
+        <tbody>
+          <tr>
+            <td><h3 class="subheading">Pump</h3></td>
+            <td>{{control:selectPumpTab}}</td>
+          </tr>
+          <tr>
+            <td class="key-btn" colspan="2">{{control:runAnalysisTab}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="tabOverviewMethod" class="item">
+      <table class="table2" cellspacing="0" cellpadding="2">
+        <tbody>
+          <tr><td><p>Hydraulic power is flow times head times specific gravity divided by 3960. Efficiency is hydraulic power divided by shaft power.</p></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

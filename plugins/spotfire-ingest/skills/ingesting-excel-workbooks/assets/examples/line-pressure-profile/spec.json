@@ -1,0 +1,98 @@
+{
+  "specVersion": 1,
+  "app": {
+    "name": "Line Pressure Profile",
+    "description": "Pressure profile of a liquid line, segment by segment, from flow, fluid and pipe inputs.",
+    "namingPolicy": "program",
+    "htmlMode": "safe",
+    "theme": {"base": "LightSfx"},
+    "pageNavigation": "Tabs"
+  },
+  "tables": [
+    {"name": "SEGMENTS",
+     "source": {"type": "csv", "path": "data/SEGMENTS.csv",
+                "columns": {"Segment": "Real", "Length (ft)": "Real",
+                            "Inner Diameter (in)": "Real", "Elevation Change (ft)": "Real"}},
+     "description": "One row per pipe segment, from the workbook's Segments sheet.",
+     "embed": true},
+    {"name": "ROUGHNESS_BY_AGE",
+     "source": {"type": "csv", "path": "data/ROUGHNESS_BY_AGE.csv",
+                "columns": {"Age (years)": "Real", "Roughness (in)": "Real"}},
+     "description": "Pipe roughness by pipe age, in the workbook's row order.",
+     "embed": true},
+    {"name": "SEGMENT_RESULTS",
+     "source": {"type": "dataFunction", "function": "Calculate Pressure Profile",
+                "output": "SEGMENT_RESULTS"},
+     "description": "Velocity, losses, outlet pressure and gradient per segment.",
+     "columns": {"Segment": {"description": "Segment number"},
+                 "Outlet Pressure (psi)": {"description": "Pressure at the segment outlet"}}}
+  ],
+  "defaultTable": "SEGMENT_RESULTS",
+  "markings": [{"name": "Selected Segment", "color": "#E94165", "default": true}],
+  "properties": [
+    {"name": "FlowRate", "type": "Real", "default": 12000.0, "description": "Flow rate (bbl/d)"},
+    {"name": "FluidDensity", "type": "Real", "default": 53.0, "description": "Fluid density (lb/ft3)"},
+    {"name": "Viscosity", "type": "Real", "default": 4.5, "description": "Viscosity (cP)"},
+    {"name": "PipeAge", "type": "Real", "default": 25.0, "description": "Pipe age (years)"},
+    {"name": "InletPressure", "type": "Real", "default": 950.0, "description": "Inlet pressure (psi)"},
+    {"name": "TotalPressureDrop", "type": "Real", "default": 0.0, "description": "Total pressure drop (psi), written by the data function"},
+    {"name": "OutletPressure", "type": "Real", "default": 0.0, "description": "Outlet pressure at the line end (psi), written by the data function"},
+    {"name": "MaxVelocity", "type": "Real", "default": 0.0, "description": "Maximum velocity (ft/s), written by the data function"},
+    {"name": "AverageGradient", "type": "Real", "default": 0.0, "description": "Average pressure gradient (psi/ft), written by the data function"}
+  ],
+  "dataFunctions": [
+    {"name": "Calculate Pressure Profile",
+     "description": "Reproduces the workbook's pressure drop calculation for every segment.",
+     "engine": "python",
+     "script": "datafunctions/calculate_pressure_profile.py",
+     "inputs": [
+       {"name": "SEGMENTS", "type": "table", "bind": {"table": "SEGMENTS", "columns": "*"}},
+       {"name": "ROUGHNESS_BY_AGE", "type": "table", "bind": {"table": "ROUGHNESS_BY_AGE", "columns": "*"}},
+       {"name": "FlowRate", "type": "value", "dataTypes": ["Real"], "bind": {"property": "FlowRate"}},
+       {"name": "FluidDensity", "type": "value", "dataTypes": ["Real"], "bind": {"property": "FluidDensity"}},
+       {"name": "Viscosity", "type": "value", "dataTypes": ["Real"], "bind": {"property": "Viscosity"}},
+       {"name": "PipeAge", "type": "value", "dataTypes": ["Real"], "bind": {"property": "PipeAge"}},
+       {"name": "InletPressure", "type": "value", "dataTypes": ["Real"], "bind": {"property": "InletPressure"}}
+     ],
+     "outputs": [
+       {"name": "SEGMENT_RESULTS", "type": "table", "target": {"table": "SEGMENT_RESULTS"}},
+       {"name": "TotalPressureDrop", "type": "value", "target": {"property": "TotalPressureDrop"}},
+       {"name": "OutletPressure", "type": "value", "target": {"property": "OutletPressure"}},
+       {"name": "MaxVelocity", "type": "value", "target": {"property": "MaxVelocity"}},
+       {"name": "AverageGradient", "type": "value", "target": {"property": "AverageGradient"}}
+     ],
+     "refresh": "automatic",
+     "executeAtBuild": true}
+  ],
+  "pages": [
+    {"title": "Pressure Profile",
+     "filters": {"tables": [{"table": "SEGMENT_RESULTS", "columns": ["Segment"]}]},
+     "visuals": [
+       {"id": "inputsPanel", "type": "textArea", "title": "Inputs", "showTitle": false,
+        "html": "html/inputs_panel.html",
+        "controls": {
+          "flowRate": {"kind": "input", "property": "FlowRate"},
+          "fluidDensity": {"kind": "input", "property": "FluidDensity"},
+          "viscosity": {"kind": "input", "property": "Viscosity"},
+          "pipeAge": {"kind": "input", "property": "PipeAge"},
+          "inletPressure": {"kind": "input", "property": "InletPressure"},
+          "totalPressureDrop": {"kind": "label", "property": "TotalPressureDrop"},
+          "outletPressure": {"kind": "label", "property": "OutletPressure"},
+          "maxVelocity": {"kind": "label", "property": "MaxVelocity"}}},
+       {"id": "pressureProfile", "type": "lineChart", "title": "Outlet Pressure (psi)",
+        "table": "SEGMENT_RESULTS", "x": "[Segment]", "y": "Sum([Outlet Pressure (psi)])"},
+       {"id": "segmentResults", "type": "table", "title": "Segment Results",
+        "table": "SEGMENT_RESULTS",
+        "columns": ["Segment", "Velocity (ft/s)", "Friction Loss (psi)", "Segment Drop (psi)",
+                    "Outlet Pressure (psi)", "Pressure Gradient (psi/ft)"],
+        "coloring": {"columns": ["Velocity (ft/s)"],
+                     "rules": [{"type": "greaterThan", "value": 10.0, "color": "#E94165"}]}}
+     ],
+     "layout": {"row": [
+       {"visual": "inputsPanel", "weight": 20},
+       {"column": [{"visual": "pressureProfile", "weight": 55},
+                   {"visual": "segmentResults", "weight": 45}], "weight": 80}
+     ]}}
+  ],
+  "activePage": "Pressure Profile"
+}

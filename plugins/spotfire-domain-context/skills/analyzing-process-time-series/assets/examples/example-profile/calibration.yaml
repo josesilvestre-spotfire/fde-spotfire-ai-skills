@@ -1,0 +1,82 @@
+# Calibration overlay: what THIS asset actually measures.
+#
+# The class card says what a flow segment is and how it fails. It says nothing about
+# operating envelopes, because an envelope is a property of one asset under one duty and
+# claiming otherwise is how a card starts reporting someone else's plant as a fault.
+#
+# An overlay may only set `normal`, `band_type`, `limits`, `source`, `update_interval` and
+# `required`. It cannot add a role, an invariant, a failure mode or a confounder: those are
+# class knowledge, and an overlay that could change them would be a fork of the knowledge
+# base rather than a calibration of it. tssme.cards.apply_calibration enforces this.
+
+calibration_version: "1.0"
+calibration_id: example-segment-2026H1
+unit: flow-segment
+pack: example
+
+source: >
+  Calibrated from the synthetic example export (assets/examples/make_data.py, seed 20260916):
+  400 hourly samples covering 2026-01-01 to 2026-01-17. One asset, one period, one duty.
+  Bands are p01/p99 of the observed distribution, rounded outward, with rail-pinned samples
+  excluded. They describe this dataset and nothing else.
+
+roles:
+
+  inlet_pressure:
+    normal: [614, 627]
+    band_type: descriptive
+    source: "Observed p01 616.6, p99 624.2 kPa over 400 samples; rounded outward."
+
+  outlet_pressure:
+    normal: [570, 613]
+    band_type: descriptive
+    source: "Observed p01 576.5, p99 609.2 kPa over 400 samples; rounded outward."
+
+  flow:
+    normal: [70, 170]
+    band_type: descriptive
+    source: "Observed p01 79.4, p99 160.9 m3/h over 400 samples; rounded outward to the campaign range."
+
+  temperature:
+    normal: [21, 35]
+    band_type: descriptive
+    limits: {lo: 20, hi: 36}
+    source: >
+      Observed interior p01 23.0, p99 33.6 degC. The raw series holds exactly 20.0 on 6 samples
+      and exactly 36.0 on 6 samples, which is the transmitter span rather than the fluid, so the
+      band is taken from the unclamped interior and the span is recorded as the hard limit.
+      dq_rail_saturation reports the clamp; it must not be calibrated into the band.
+
+  density:
+    normal: [836, 849]
+    band_type: descriptive
+    update_interval: 168h
+    source: >
+      Observed 837.5 to 847.1 kg/m3 across 3 samples in the record. Three points is not a
+      distribution; this band is provisional and should be re-cut once a year of sampling exists.
+      The cadence is corrected to 168h to match what the export actually shows.
+
+  additive_ppm:
+    normal: [10, 14]
+    band_type: descriptive
+    source: >
+      Fixed dose of 12 ppm for the entire record. Because the tag never moves, the additive_change
+      confounder cannot be tested against this dataset at all, and any failure mode that lists it
+      must be reported as unconfirmable rather than as excluded.
+
+  measured_dp:
+    normal: [8, 48]
+    band_type: descriptive
+    source: "Observed p01 11.3, p99 43.4 kPa; rounded outward. Rate-driven, so this band is wide by nature and a narrow one would be reporting the throughput schedule."
+
+  predicted_dp:
+    normal: [8, 46]
+    band_type: descriptive
+    source: "Observed p01 10.9, p99 42.3 kPa; rounded outward."
+
+notes: >
+  residual and residual_pct are deliberately not overlaid. residual carries no band at any layer
+  because a fixed band in kPa is rate-biased. residual_pct carries a normative band of +/-5 percent
+  from the class card, which is a model quality target: this asset sits outside it on roughly a
+  quarter of the record, and that excursion rate is the finding. Widening it here would delete the
+  finding rather than resolve it.

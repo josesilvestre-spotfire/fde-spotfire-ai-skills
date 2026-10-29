@@ -1,0 +1,205 @@
+# Unit Card Core Schema v1.0
+#
+# The STRUCTURAL contract for a unit card. Owned by the engine, domain-free by design.
+# It says what shape a card has and which fields mean what. It does NOT say what kinds of
+# equipment exist, what quantities they measure, or who owns them: those are domain
+# vocabulary and they come from packs via `schema_extensions`.
+#
+# Extensible enums are declared here with `extensible: true` and an empty or minimal base.
+# Each loaded pack appends to them. A card is validated against the union.
+
+schema_version: "1.0"
+
+required_top_level:
+  - card_version      # must equal schema_version
+  - unit_id           # kebab-case, unique within a pack, matches filename
+  - unit_class        # from a pack's vocabulary
+  - service           # free text: what this unit does
+  - persona           # which engineering persona owns it, from a pack's vocabulary
+  - roles             # canonical measurement roles
+optional_top_level:
+  - description
+  - topology          # {upstream: [], downstream: [], parallel: []}
+  - derived           # computed roles (formulas over roles)
+  - invariants        # physical/relational truths that must hold
+  - failure_modes     # named degradations with multi-tag signatures
+  - confounders       # benign explanations that must be ruled out first
+  - regimes           # how to segment operation before comparing anything
+  - checks            # which registered checks to run, with params
+  - notes
+
+# ---------------------------------------------------------------- universal enums
+# These are properties of the METHOD, not of any industry. A band is descriptive or
+# normative whether the unit is a pump or a fermenter.
+
+enums:
+  kind:                       # provenance of a role, drives data-quality expectations
+    - sensor                  # historian/SCADA, fast, subject to drift, freeze, compression
+    - lab                     # assay, slow, zero-order-held between samples
+    - calculated              # derived in the source system (verify the identity)
+    - status                  # discrete/state
+    - manual                  # operator entry
+  band_type:
+    - descriptive             # observed envelope of this asset; a wide miss means the card is wrong
+    - normative               # a specification or model-quality target; a miss is always a finding
+  control_role:
+    - CV                      # controlled variable (on setpoint; low variance is EXPECTED, not health)
+    - MV                      # manipulated variable (moves to hold a CV)
+    - DV                      # disturbance variable (external driver; a confounder by nature)
+    - IND                     # indication only
+  direction:                  # allowed values inside failure_mode.signature
+    - up
+    - down
+    - sharp_up
+    - sharp_down
+    - erratic
+    - flat
+    - unchanged
+  onset:                      # how fast a failure mode develops; the primary discriminator
+    - instant                 # < 1 sample
+    - hours
+    - days
+    - weeks
+    - months
+  severity:
+    - info
+    - low
+    - medium
+    - high
+    - critical
+  invariant_kind:
+    - identity
+    - inequality
+    - balance
+    - power_law
+    - monotonic
+    - range
+
+# ---------------------------------------------------------------- extensible enums
+# The engine knows these fields exist and knows nothing about their values. A pack that
+# describes distillation contributes `distillation_column`; a pack that describes wind
+# turbines contributes `gearbox`. The engine is not required to change for either.
+
+extensible_enums:
+  unit_class:
+    base: []
+    note: "Contributed entirely by packs. The engine has no opinion about what equipment exists."
+  persona:
+    base: []
+    note: "Contributed entirely by packs. Which engineering discipline owns this unit."
+  quantity:
+    base:                     # physically universal quantities, safe in any domain
+      - pressure
+      - differential_pressure
+      - temperature
+      - flow
+      - level
+      - mass
+      - volume
+      - power
+      - energy
+      - speed
+      - position
+      - concentration
+      - ratio
+      - dimensionless
+    note: "Packs extend with domain quantities (specific_gravity, viscosity, head, loading)."
+
+# ---------------------------------------------------------------- field specs
+
+field_specs:
+
+  roles:
+    id:             {type: str,  required: true,  note: "canonical role name; NEVER a historian tag name"}
+    description:    {type: str,  required: true}
+    kind:           {type: enum, required: true,  enum: kind}
+    quantity:       {type: enum, required: true,  enum: quantity}
+    units:          {type: str,  required: true}
+    normal:         {type: pair, required: false, note: "[lo, hi] typical operating band. On a CLASS card this should be present only when it is class knowledge (a spec, a model target). An envelope measured from one asset belongs in a calibration overlay, not here."}
+    band_type:      {type: enum, required: false, enum: band_type, default: descriptive, note: "descriptive = what this asset actually does, so a large excursion fraction means the CARD is wrong. normative = what it SHOULD do (a spec or a model-quality target), so exceeding it is always a real finding no matter how often it happens. Getting this wrong either buries a real problem or manufactures one."}
+    limits:         {type: map,  required: false, note: "{lo, hi} physically/mechanically impossible outside"}
+    control_role:   {type: enum, required: false, enum: control_role, default: IND}
+    update_interval: {type: str, required: false, note: "expected cadence, e.g. 1min / 1d / 7d. Lab roles are slower than the sample rate and WILL be zero-order-held."}
+    required:       {type: bool, required: false, default: true}
+    source:         {type: str,  required: true,  note: "citation, or UNVERIFIED"}
+
+  derived:
+    id:             {type: str,  required: true}
+    expr:           {type: str,  required: true,  note: "python expr over role ids, evaluated by tssme.prep"}
+    units:          {type: str,  required: true}
+    description:    {type: str,  required: false}
+    normal:         {type: pair, required: false, note: "[lo, hi] band, checked by phys_range exactly as for a role. A derived quantity is usually where the well-formed band lives: a rate-normalised residual has a meaningful band where a raw one does not."}
+    band_type:      {type: enum, required: false, enum: band_type, default: descriptive}
+    source:         {type: str,  required: true}
+
+  invariants:
+    id:             {type: str,  required: true}
+    kind:           {type: enum, required: true,  enum: invariant_kind}
+    expr:           {type: str,  required: true}
+    tol:            {type: num,  required: false, note: "relative tolerance unless tol_abs given"}
+    tol_abs:        {type: num,  required: false}
+    window:         {type: str,  required: false, note: "aggregation window, e.g. 24h"}
+    severity:       {type: enum, required: false, enum: severity, default: medium}
+    requires_roles: {type: list, required: false, note: "role ids that must be PRESENT in the data for this invariant to mean anything. An invariant valid only under a condition you cannot observe must declare the role that would evidence that condition; it is then reported as not evaluated rather than evaluated wrongly."}
+    source:         {type: str,  required: true}
+
+  failure_modes:
+    id:             {type: str,  required: true}
+    name:           {type: str,  required: true}
+    severity:       {type: enum, required: true,  enum: severity}
+    onset:          {type: enum, required: true,  enum: onset}
+    signature:      {type: map,  required: true,  note: "{role_id: direction}; >=2 roles or it is a threshold alarm, not a signature"}
+    confounders:    {type: list, required: true,  note: "confounder ids: BENIGN explanations producing the same signature, which must be excluded"}
+    differentials:  {type: list, required: false, note: "failure_mode ids: OTHER FAULTS producing a similar signature. A confounder means nothing is wrong; a differential means something else is wrong. Both must be excluded, but they lead to different actions."}
+    discriminators: {type: list, required: false, note: "what separates this from its confounders and differentials (usually onset rate)"}
+    verify_in_field: {type: list, required: false, note: "what a human should physically check to confirm"}
+    source:         {type: str,  required: true}
+
+  confounders:
+    id:             {type: str,  required: true}
+    description:    {type: str,  required: true}
+    roles:          {type: list, required: true,  note: "roles that evidence this confounder"}
+    test:           {type: str,  required: true,  note: "registered confounder test name in tssme.checks.confounders"}
+    source:         {type: str,  required: true}
+
+  regimes:
+    id:             {type: str,  required: true}
+    by:             {type: str,  required: true,  note: "role id to segment on"}
+    method:         {type: enum, required: true,  enum: [bin, discrete, changepoint]}
+    params:         {type: map,  required: false}
+
+# ---------------------------------------------------------------- overlay contract
+# A calibration overlay is how an asset's measured reality is APPENDED to class knowledge
+# without forking it. It may only touch fields that are site facts. Anything that changes
+# what the unit IS or how it FAILS is class knowledge and is refused.
+
+calibration:
+  overlayable_fields:
+    - normal
+    - band_type
+    - limits
+    - source
+    - update_interval
+    - required
+  refused_sections:
+    - roles           # cannot add or remove roles, only adjust existing ones
+    - derived         # same
+    - invariants
+    - failure_modes
+    - confounders
+    - regimes
+  note: >
+    An overlay narrows or replaces bands for one asset and records where those numbers came
+    from. If an asset genuinely needs a different invariant or failure mode, it is a
+    different unit class, not an overlay. Allowing an overlay to redefine physics turns
+    every deployment into a fork of the knowledge base.
+
+hard_rules:
+  - "Every numeric bound carries a `source`. If it cannot be sourced, write `source: UNVERIFIED` so it surfaces in the report. Never quietly invent a range."
+  - "Role ids are canonical and plant-agnostic. Historian tag names live in a tag map, never in a card."
+  - "A class card describes a unit CLASS. A number measured from one asset belongs in a calibration overlay, so that the card stays reusable and the measurement stays attributable."
+  - "A failure_mode signature with one role is a threshold alarm. Require two or more roles."
+  - "Every failure_mode lists confounders. A mode with no confounders means you have not thought about it yet."
+  - "Cards are versioned and reviewed like code. A range that changed needs a source that changed."
+  - "An invariant that only holds under an unobservable condition must declare `requires_roles`. Leaving it unconditional makes the library assert something the data cannot support, and a confident wrong invariant is worse than a missing one."
+  - "Never calibrate a `normal` band from values sitting on a transmitter rail. dq_rail_saturation exists to find those; clamped extremes are not measurements."

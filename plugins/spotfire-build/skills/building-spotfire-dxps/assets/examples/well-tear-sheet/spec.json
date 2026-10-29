@@ -1,0 +1,796 @@
+{
+  "specVersion": 1,
+  "app": {
+    "name": "Well Tear Sheet",
+    "description": "Single-well acquisition tear sheet for DEMO-WELL-001 (DUC): valuation, breakevens, reserves, production and cash-flow profile, lease operating expense and sensitivities. The monthly profile and sensitivities are illustrative data reconstructed from the annual economics.",
+    "keywords": [
+      "tear sheet",
+      "well economics",
+      "DUC",
+      "acquisition"
+    ],
+    "output": "build/Well Tear Sheet.dxp",
+    "namingPolicy": "program",
+    "htmlMode": "safe",
+    "pageNavigation": "Tabs",
+    "canvas": null,
+    "snapshots": {
+      "enabled": true,
+      "width": 1600,
+      "height": 900
+    },
+    "minimumSpotfireVersion": "14.6",
+    "style": {
+      "palette": {
+        "bg": "#FCFCFA",
+        "tint": "#F2F1EC",
+        "ink": "#111110",
+        "ink2": "#4B4A46",
+        "ink3": "#8A8983",
+        "hair": "#E2E1DB",
+        "oil": "#71AB3C",
+        "gas": "#BA2C48",
+        "neg": "#BA2C48",
+        "cash": "#111110",
+        "disc": "#088BCE",
+        "accent": "#088BCE",
+        "opex1": "#00A4A1",
+        "opex2": "#F36099",
+        "opex3": "#088BCE",
+        "opex4": "#FB907B"
+      },
+      "font": "Segoe UI",
+      "text": "@ink",
+      "negative": "@neg",
+      "formats": {
+        "money": "$#,##0;-$#,##0",
+        "musd": "$#,##0,,.0M;-$#,##0,,.0M",
+        "kusd": "#,##0;(#,##0)",
+        "kusd1": "#,##0.0;(#,##0.0)",
+        "price": "$#,##0.00",
+        "int": "#,##0",
+        "num2": "#,##0.00;-#,##0.00",
+        "pct0": "0%",
+        "pct1": "0.0%",
+        "multiple": "0.00x",
+        "dec0": "0",
+        "dec1": "0.0"
+      },
+      "visual": {
+        "text": {
+          "showTitle": false
+        },
+        "kpi": {
+          "legend": false,
+          "baseFont": 8,
+          "minTilesPerRow": 7,
+          "minVisibleTiles": 7,
+          "emptyText": "-",
+          "tile": null
+        },
+        "table": {
+          "legend": false,
+          "font": 8.5,
+          "headerFont": 8.5,
+          "headerBold": true
+        },
+        "cross": {
+          "legend": false,
+          "font": 8.5,
+          "headerFont": 8.5,
+          "headerBold": true,
+          "totals": false,
+          "negatives": true,
+          "cellWidth": 84,
+          "rowHeaderWidth": 200
+        },
+        "line": {
+          "legend": true,
+          "axisFont": 8,
+          "axisTitleFont": 8,
+          "legendFont": 8
+        },
+        "bar": {
+          "legend": true,
+          "axisFont": 8,
+          "axisTitleFont": 8,
+          "legendFont": 8
+        },
+        "ref": {
+          "width": 1,
+          "labelFont": 8
+        }
+      }
+    }
+  },
+  "tables": [
+    {
+      "name": "WELL_SUMMARY",
+      "source": {
+        "type": "sbdf",
+        "path": "data/WELL_SUMMARY.sbdf"
+      },
+      "description": "One row: case metadata and headline economics (given values from the source tear sheet).",
+      "columns": {
+        "PV10 ($)": {
+          "format": "$#,##0;-$#,##0"
+        },
+        "Acquisition Price ($)": {
+          "format": "$#,##0;-$#,##0"
+        },
+        "NPV10 ($)": {
+          "format": "$#,##0;-$#,##0"
+        },
+        "IRR": {
+          "format": "0.0%"
+        },
+        "MOIC (x)": {
+          "format": "0.00x"
+        },
+        "Payback (months)": {
+          "format": "0.0"
+        },
+        "Breakeven Oil NPV10 ($/bbl)": {
+          "format": "$#,##0.00"
+        },
+        "Breakeven Oil 15% IRR ($/bbl)": {
+          "format": "$#,##0.00"
+        },
+        "Peak Net Rate (boe/d)": {
+          "format": "#,##0"
+        },
+        "Remaining Net Reserves (boe)": {
+          "format": "#,##0"
+        },
+        "Completion Capex ($)": {
+          "format": "$#,##0;-$#,##0"
+        }
+      },
+      "embed": true
+    },
+    {
+      "name": "CASH_FLOW_ANNUAL",
+      "source": {
+        "type": "sbdf",
+        "path": "data/CASH_FLOW_ANNUAL.sbdf"
+      },
+      "description": "Ten model years plus the remaining life: volumes, prices, revenue, operating costs, capex and cash flow, net to interest.",
+      "columns": {
+        "Net Oil (bbl)": {
+          "format": "#,##0"
+        },
+        "Net Gas (mcf)": {
+          "format": "#,##0"
+        },
+        "Net BOE (boe)": {
+          "format": "#,##0"
+        },
+        "Oil Price ($/bbl)": {
+          "format": "$#,##0.00"
+        },
+        "Gas Price ($/mcf)": {
+          "format": "$#,##0.00"
+        },
+        "Revenue ($K)": {
+          "format": "#,##0;(#,##0)"
+        },
+        "Fixed LOE ($K)": {
+          "format": "#,##0.0;(#,##0.0)"
+        },
+        "Variable LOE ($K)": {
+          "format": "#,##0;(#,##0)"
+        },
+        "Gathering and Transport ($K)": {
+          "format": "#,##0.0;(#,##0.0)"
+        },
+        "LOE ($K)": {
+          "format": "#,##0;(#,##0)"
+        },
+        "Production Taxes ($K)": {
+          "format": "#,##0;(#,##0)"
+        },
+        "Lifting Cost ($K)": {
+          "format": "#,##0;(#,##0)"
+        },
+        "Operating Cash Flow ($K)": {
+          "format": "#,##0;(#,##0)"
+        },
+        "Capex ($K)": {
+          "format": "#,##0;(#,##0)"
+        },
+        "Acquisition ($K)": {
+          "format": "#,##0;(#,##0)"
+        },
+        "Free Cash Flow ($K)": {
+          "format": "#,##0;(#,##0)"
+        },
+        "Discounted Free Cash Flow ($K)": {
+          "format": "#,##0;(#,##0)"
+        },
+        "Cumulative Free Cash Flow ($K)": {
+          "format": "#,##0;(#,##0)"
+        },
+        "Cumulative Discounted FCF ($K)": {
+          "format": "#,##0;(#,##0)"
+        },
+        "LOE per BOE ($/boe)": {
+          "format": "$#,##0.00"
+        },
+        "Lifting Cost per BOE ($/boe)": {
+          "format": "$#,##0.00"
+        }
+      },
+      "embed": true
+    },
+    {
+      "name": "PRODUCTION_MONTHLY",
+      "source": {
+        "type": "sbdf",
+        "path": "data/PRODUCTION_MONTHLY.sbdf"
+      },
+      "description": "Monthly profile Feb-2026 to Mar-2076 reconstructed from the annual economics (toy data; annual totals match the source).",
+      "columns": {
+        "Gross Oil Rate (bbl/d)": {
+          "format": "#,##0"
+        },
+        "Gross Gas Rate (mcf/d)": {
+          "format": "#,##0"
+        },
+        "Net BOE Rate (boe/d)": {
+          "format": "#,##0"
+        },
+        "Cumulative FCF ($)": {
+          "format": "$#,##0;-$#,##0"
+        },
+        "Cumulative Discounted FCF ($)": {
+          "format": "$#,##0;-$#,##0"
+        }
+      },
+      "embed": true
+    },
+    {
+      "name": "PV_PROFILE",
+      "source": {
+        "type": "sbdf",
+        "path": "data/PV_PROFILE.sbdf"
+      },
+      "description": "Present value at each discount rate, before and after the acquisition price.",
+      "columns": {
+        "Discount Rate": {
+          "format": "0%"
+        },
+        "PV ($)": {
+          "format": "$#,##0;-$#,##0"
+        },
+        "NPV after Price ($)": {
+          "format": "$#,##0;-$#,##0"
+        }
+      },
+      "embed": true
+    },
+    {
+      "name": "BREAKEVENS",
+      "source": {
+        "type": "sbdf",
+        "path": "data/BREAKEVENS.sbdf"
+      },
+      "description": "Oil price breakevens, maximum bids by target IRR and capex headroom.",
+      "columns": {
+        "Value": {
+          "format": "#,##0.00;-#,##0.00"
+        }
+      },
+      "embed": true
+    },
+    {
+      "name": "RESERVES",
+      "source": {
+        "type": "sbdf",
+        "path": "data/RESERVES.sbdf"
+      },
+      "description": "Remaining reserves, gross and net.",
+      "columns": {
+        "Oil (bbl)": {
+          "format": "#,##0"
+        },
+        "Gas (mcf)": {
+          "format": "#,##0"
+        },
+        "BOE (boe)": {
+          "format": "#,##0"
+        }
+      },
+      "embed": true
+    },
+    {
+      "name": "LOE_PER_BOE",
+      "source": {
+        "type": "sbdf",
+        "path": "data/LOE_PER_BOE.sbdf"
+      },
+      "description": "Lifting cost per net BOE by model year and component.",
+      "columns": {
+        "Cost per BOE ($/boe)": {
+          "format": "$#,##0.00"
+        }
+      },
+      "embed": true
+    },
+    {
+      "name": "SENSITIVITIES",
+      "source": {
+        "type": "sbdf",
+        "path": "data/SENSITIVITIES.sbdf"
+      },
+      "description": "Scenario results with an economic limit; changes from the monthly model applied to the base case (toy data).",
+      "columns": {
+        "PV10 ($)": {
+          "format": "$#,##0;-$#,##0"
+        },
+        "NPV10 ($)": {
+          "format": "$#,##0;-$#,##0"
+        },
+        "IRR": {
+          "format": "0.0%"
+        },
+        "Payback (months)": {
+          "format": "0"
+        },
+        "PV10 Change ($)": {
+          "format": "$#,##0;-$#,##0"
+        }
+      },
+      "embed": true
+    },
+    {
+      "name": "DILIGENCE_FLAGS",
+      "source": {
+        "type": "sbdf",
+        "path": "data/DILIGENCE_FLAGS.sbdf"
+      },
+      "description": "Diligence flags derived from the economics (also rendered in the diligence text area).",
+      "embed": true
+    }
+  ],
+  "defaultTable": "PRODUCTION_MONTHLY",
+  "relations": [],
+  "markings": [
+    {
+      "name": "Selected Period",
+      "color": "#088BCE",
+      "default": true
+    }
+  ],
+  "filteringSchemes": [],
+  "properties": [],
+  "dataFunctions": [],
+  "scripts": [],
+  "triggers": [],
+  "pages": [
+    {
+      "title": "Tear Sheet",
+      "visible": true,
+      "filterPanel": false,
+      "detailsOnDemand": false,
+      "visuals": [
+        {
+          "id": "header",
+          "type": "textArea",
+          "title": "Header",
+          "showTitle": false,
+          "html": "html/header.html"
+        },
+        {
+          "id": "metrics",
+          "type": "kpiChart",
+          "title": "Headline economics",
+          "showTitle": false,
+          "table": "WELL_SUMMARY",
+          "kpis": [
+            {
+              "title": "PV10",
+              "value": "Sum([PV10 ($)])",
+              "format": "money"
+            },
+            {
+              "title": "Acquisition price",
+              "value": "Sum([Acquisition Price ($)])",
+              "format": "money"
+            },
+            {
+              "title": "NPV10 after price",
+              "value": "Sum([NPV10 ($)])",
+              "format": "money"
+            },
+            {
+              "title": "IRR",
+              "value": "Sum([IRR])",
+              "format": "pct1"
+            },
+            {
+              "title": "MOIC",
+              "value": "Sum([MOIC (x)])",
+              "format": "multiple"
+            },
+            {
+              "title": "Payback (months)",
+              "value": "Sum([Payback (months)])",
+              "format": "dec1"
+            },
+            {
+              "title": "Oil breakeven ($/bbl)",
+              "value": "Sum([Breakeven Oil NPV10 ($/bbl)])",
+              "format": "price"
+            }
+          ],
+          "legend": {
+            "visible": false
+          }
+        },
+        {
+          "id": "pvTable",
+          "type": "table",
+          "title": "Present value",
+          "table": "PV_PROFILE",
+          "columns": [
+            "Discount Rate",
+            "PV ($)",
+            "NPV after Price ($)"
+          ],
+          "widths": {
+            "Discount Rate": 90,
+            "PV ($)": 110,
+            "NPV after Price ($)": 130
+          },
+          "legend": {
+            "visible": false
+          }
+        },
+        {
+          "id": "breakevens",
+          "type": "table",
+          "title": "Breakevens",
+          "table": "BREAKEVENS",
+          "columns": [
+            "Metric",
+            "Value",
+            "Unit"
+          ],
+          "widths": {
+            "Metric": 180,
+            "Value": 110,
+            "Unit": 60
+          },
+          "legend": {
+            "visible": false
+          }
+        },
+        {
+          "id": "reserves",
+          "type": "table",
+          "title": "Reserves",
+          "table": "RESERVES",
+          "columns": [
+            "Reserves Case",
+            "Oil (bbl)",
+            "Gas (mcf)",
+            "BOE (boe)"
+          ],
+          "widths": {
+            "Reserves Case": 120,
+            "Oil (bbl)": 90,
+            "Gas (mcf)": 95,
+            "BOE (boe)": 90
+          },
+          "legend": {
+            "visible": false
+          }
+        },
+        {
+          "id": "oilRate",
+          "type": "lineChart",
+          "title": "Oil rate, gross (bbl/d)",
+          "table": "PRODUCTION_MONTHLY",
+          "x": "[Month]",
+          "y": "Avg([Gross Oil Rate (bbl/d)])",
+          "limitExpression": "[Model Year] <= 10",
+          "coloring": {
+            "fixed": "#71AB3C"
+          },
+          "yScale": {
+            "min": 0
+          },
+          "yFormat": "int",
+          "lineWidth": 2,
+          "legend": {
+            "visible": false
+          }
+        },
+        {
+          "id": "gasRate",
+          "type": "lineChart",
+          "title": "Gas rate, gross (mcf/d)",
+          "table": "PRODUCTION_MONTHLY",
+          "x": "[Month]",
+          "y": "Avg([Gross Gas Rate (mcf/d)])",
+          "limitExpression": "[Model Year] <= 10",
+          "coloring": {
+            "fixed": "#BA2C48"
+          },
+          "yScale": {
+            "min": 0
+          },
+          "yFormat": "int",
+          "lineWidth": 2,
+          "legend": {
+            "visible": false
+          }
+        },
+        {
+          "id": "cumCash",
+          "type": "lineChart",
+          "title": "Cumulative cash flow ($)",
+          "table": "PRODUCTION_MONTHLY",
+          "x": "[Month]",
+          "y": [
+            "Sum([Cumulative FCF ($)]) as [Undiscounted]",
+            "Sum([Cumulative Discounted FCF ($)]) as [Discounted at 10%]"
+          ],
+          "colorBy": "<[Axis.Default.Names]>",
+          "coloring": {
+            "categorical": {
+              "Undiscounted": "#111110",
+              "Discounted at 10%": "#088BCE"
+            }
+          },
+          "limitExpression": "[Model Year] <= 10",
+          "referenceLayers": [
+            {
+              "kind": "horizontalLine",
+              "value": "0",
+              "color": "#8A8983",
+              "dash": "dash",
+              "width": 1,
+              "label": "Breakeven"
+            },
+            {
+              "kind": "verticalLine",
+              "value": "Date(\"2032-01-16\")",
+              "color": "#111110",
+              "dash": "dot",
+              "width": 1,
+              "label": "Payback Jan-2032"
+            }
+          ],
+          "yFormat": "musd",
+          "legend": {
+            "visible": true
+          }
+        },
+        {
+          "id": "liftCost",
+          "type": "barChart",
+          "title": "Lifting cost per BOE, net ($/boe)",
+          "table": "LOE_PER_BOE",
+          "x": "<[Model Year]>",
+          "y": "Sum([Cost per BOE ($/boe)])",
+          "colorBy": "<[Component]>",
+          "stack": "stacked",
+          "coloring": {
+            "categorical": {
+              "Fixed": "#00A4A1",
+              "Variable": "#F36099",
+              "Gathering and transport": "#088BCE",
+              "Production taxes": "#FB907B"
+            }
+          },
+          "yFormat": "price",
+          "legend": {
+            "visible": true
+          }
+        }
+      ],
+      "layout": {
+        "column": [
+          {
+            "visual": "header",
+            "weight": 13
+          },
+          {
+            "visual": "metrics",
+            "weight": 13
+          },
+          {
+            "row": [
+              {
+                "visual": "pvTable"
+              },
+              {
+                "visual": "breakevens"
+              },
+              {
+                "visual": "reserves"
+              }
+            ],
+            "weight": 22
+          },
+          {
+            "row": [
+              {
+                "column": [
+                  {
+                    "visual": "oilRate"
+                  },
+                  {
+                    "visual": "gasRate"
+                  }
+                ],
+                "weight": 1
+              },
+              {
+                "visual": "cumCash",
+                "weight": 1
+              },
+              {
+                "visual": "liftCost",
+                "weight": 1
+              }
+            ],
+            "weight": 52
+          }
+        ]
+      }
+    },
+    {
+      "title": "Cash Flow and LOE",
+      "visible": true,
+      "filterPanel": false,
+      "detailsOnDemand": false,
+      "visuals": [
+        {
+          "id": "cashFlow",
+          "type": "crossTable",
+          "title": "Ten-year cash flow summary ($K unless noted)",
+          "table": "CASH_FLOW_ANNUAL",
+          "rows": [
+            "[Axis.Default.Names]"
+          ],
+          "columns": [
+            "Calendar Period"
+          ],
+          "measures": [
+            "Sum([Net Oil (bbl)]) as [Net oil (bbl)]",
+            "Sum([Net Gas (mcf)]) as [Net gas (mcf)]",
+            "Sum([Net BOE (boe)]) as [Net BOE (boe)]",
+            "Avg([Oil Price ($/bbl)]) as [Oil price ($/bbl)]",
+            "Avg([Gas Price ($/mcf)]) as [Gas price ($/mcf)]",
+            "Sum([Revenue ($K)]) as [Revenue]",
+            "Sum([LOE ($K)]) as [Lease operating expense]",
+            "Sum([Production Taxes ($K)]) as [Production taxes]",
+            "Sum([Operating Cash Flow ($K)]) as [Operating cash flow]",
+            "Sum([Capex ($K)]) as [Capex]",
+            "Sum([Acquisition ($K)]) as [Acquisition]",
+            "Sum([Free Cash Flow ($K)]) as [Free cash flow]",
+            "Sum([Discounted Free Cash Flow ($K)]) as [Discounted free cash flow]",
+            "Sum([Cumulative Free Cash Flow ($K)]) as [Cumulative free cash flow]",
+            "Sum([Cumulative Discounted FCF ($K)]) as [Cumulative discounted FCF]"
+          ],
+          "totals": {
+            "rows": false,
+            "columns": false
+          },
+          "legend": {
+            "visible": false
+          }
+        },
+        {
+          "id": "loeStatement",
+          "type": "crossTable",
+          "title": "Lease operating expense statement ($K and $/boe)",
+          "table": "CASH_FLOW_ANNUAL",
+          "rows": [
+            "[Axis.Default.Names]"
+          ],
+          "columns": [
+            "Calendar Period"
+          ],
+          "measures": [
+            "Sum([Fixed LOE ($K)]) as [Fixed]",
+            "Sum([Variable LOE ($K)]) as [Variable]",
+            "Sum([Gathering and Transport ($K)]) as [Gathering and transport]",
+            "Sum([LOE ($K)]) as [Lease operating expense]",
+            "Sum([Production Taxes ($K)]) as [Production taxes]",
+            "Sum([Lifting Cost ($K)]) as [Lifting cost]",
+            "Avg([LOE per BOE ($/boe)]) as [LOE per BOE ($/boe)]",
+            "Avg([Lifting Cost per BOE ($/boe)]) as [Lifting cost per BOE ($/boe)]"
+          ],
+          "totals": {
+            "rows": false,
+            "columns": false
+          },
+          "legend": {
+            "visible": false
+          }
+        },
+        {
+          "id": "sensitivities",
+          "type": "table",
+          "title": "Sensitivities (economic limit applied)",
+          "table": "SENSITIVITIES",
+          "columns": [
+            "Scenario",
+            "PV10 ($)",
+            "NPV10 ($)",
+            "IRR",
+            "Payback (months)",
+            "PV10 Change ($)"
+          ],
+          "widths": {
+            "Scenario": 210,
+            "PV10 ($)": 105,
+            "NPV10 ($)": 105,
+            "IRR": 65,
+            "Payback (months)": 115,
+            "PV10 Change ($)": 120
+          },
+          "coloring": [
+            {
+              "columns": [
+                "PV10 Change ($)",
+                "NPV10 ($)",
+                "PV10 ($)"
+              ],
+              "rules": [
+                {
+                  "type": "lessThan",
+                  "value": 0.0,
+                  "color": "#BA2C48"
+                }
+              ],
+              "default": "#111110",
+              "settings": {
+                "SetColorOnText": true
+              }
+            }
+          ],
+          "legend": {
+            "visible": false
+          }
+        },
+        {
+          "id": "diligence",
+          "type": "textArea",
+          "title": "Diligence and method",
+          "showTitle": false,
+          "html": "html/diligence.html"
+        }
+      ],
+      "layout": {
+        "column": [
+          {
+            "visual": "cashFlow",
+            "weight": 44
+          },
+          {
+            "visual": "loeStatement",
+            "weight": 26
+          },
+          {
+            "row": [
+              {
+                "visual": "sensitivities",
+                "weight": 58
+              },
+              {
+                "visual": "diligence",
+                "weight": 42
+              }
+            ],
+            "weight": 30
+          }
+        ]
+      }
+    }
+  ],
+  "activePage": "Tear Sheet"
+}

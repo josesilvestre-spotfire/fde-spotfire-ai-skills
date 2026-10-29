@@ -1,0 +1,243 @@
+{
+  "specVersion": 1,
+  "app": {
+    "name": "Mod Layers Demo",
+    "description": "One visualization mod with three layers on two tables: hourly pump readings, the same readings as time bins, and the pump events. A floating button steps through the pumps; clicking an event marks it and lists it next to the visual.",
+    "keywords": [
+      "visualization mod",
+      "layers",
+      "action mod"
+    ],
+    "output": "build/Mod Layers Demo.dxp",
+    "namingPolicy": "program",
+    "htmlMode": "safe",
+    "pageNavigation": "Tabs",
+    "minimumSpotfireVersion": "15.0"
+  },
+  "tables": [
+    {
+      "name": "READINGS",
+      "source": {
+        "type": "sbdf",
+        "path": "data/READINGS.sbdf"
+      },
+      "description": "Hourly readings of two pumps over three days.",
+      "columns": {
+        "Asset": {
+          "description": "Pump name"
+        },
+        "Timestamp": {
+          "description": "Start of the hour",
+          "format": "yyyy-MM-dd HH:mm"
+        },
+        "Pressure (psig)": {
+          "description": "Discharge pressure",
+          "format": "#,##0.0"
+        },
+        "Flow (bbl/d)": {
+          "description": "Flow rate",
+          "format": "#,##0"
+        }
+      }
+    },
+    {
+      "name": "EVENTS",
+      "source": {
+        "type": "sbdf",
+        "path": "data/EVENTS.sbdf"
+      },
+      "description": "Pump events: one row per event with its start, end and severity.",
+      "columns": {
+        "Event ID": {
+          "description": "Event identifier"
+        },
+        "Asset": {
+          "description": "Pump name"
+        },
+        "Start": {
+          "description": "Event start",
+          "format": "yyyy-MM-dd HH:mm"
+        },
+        "End": {
+          "description": "Event end",
+          "format": "yyyy-MM-dd HH:mm"
+        },
+        "Severity": {
+          "description": "Severity from 1 (low) to 5 (high)",
+          "format": "0.0"
+        }
+      }
+    }
+  ],
+  "defaultTable": "READINGS",
+  "markings": [
+    {
+      "name": "Marking",
+      "color": "#3050EF",
+      "default": true
+    },
+    {
+      "name": "Event Pick",
+      "color": "#E94165",
+      "default": false
+    }
+  ],
+  "properties": [
+    {
+      "name": "ViewAsset",
+      "type": "String",
+      "default": "Pump A",
+      "description": "Asset the layers show"
+    },
+    {
+      "name": "BinLevel",
+      "type": "LongInteger",
+      "default": 3,
+      "description": "Time bin of the Daily range layer: 3 day, 4 hour"
+    }
+  ],
+  "vizMods": [
+    {
+      "id": "demo-layers",
+      "project": "mods/demo-layers"
+    }
+  ],
+  "actionMods": [
+    {
+      "id": "demo-layers-actions",
+      "project": "actionmod"
+    }
+  ],
+  "pages": [
+    {
+      "title": "Layers",
+      "filterPanel": false,
+      "visuals": [
+        {
+          "id": "demoLayers",
+          "type": "mod",
+          "modId": "demo-layers",
+          "title": "Readings and events",
+          "table": "READINGS",
+          "marking": null,
+          "legend": {
+            "visible": false
+          },
+          "properties": {
+            "heading": "Pump readings",
+            "showGrid": true,
+            "lineWidth": 1.5,
+            "maxRows": 5000
+          },
+          "layers": [
+            {
+              "type": "Series",
+              "title": "Readings",
+              "table": "READINGS",
+              "marking": null,
+              "limitExpression": "[Asset] = \"${ViewAsset}\"",
+              "axes": {
+                "X": "Timestamp",
+                "Values": [
+                  "Pressure (psig)",
+                  "Flow (bbl/d)"
+                ],
+                "Series": "<[Axis.Default.Names]>"
+              },
+              "properties": {
+                "role": "raw",
+                "lineWidth": 1
+              }
+            },
+            {
+              "type": "Series",
+              "title": "Daily range",
+              "table": "READINGS",
+              "marking": null,
+              "limitExpression": "[Asset] = \"${ViewAsset}\"",
+              "useFiltering": false,
+              "axes": {
+                "X": "Min([Timestamp])",
+                "Values": [
+                  "Min([Pressure (psig)]) as [Pressure min]",
+                  "Max([Pressure (psig)]) as [Pressure max]"
+                ],
+                "Series": "<[Axis.Default.Names]>",
+                "Bin": "<BinByDateTime([Timestamp],\"Year.Quarter.Month.Day.Hour\",${BinLevel})>"
+              },
+              "properties": {
+                "role": "binned",
+                "visible": true
+              }
+            },
+            {
+              "type": "Records",
+              "title": "Events",
+              "table": "EVENTS",
+              "marking": "Event Pick",
+              "limitExpression": "[Asset] = \"${ViewAsset}\"",
+              "axes": {
+                "Key": "<[Event ID]>",
+                "Attributes": [
+                  "Asset",
+                  "Start",
+                  "End"
+                ],
+                "Values": "Max([Severity])"
+              },
+              "properties": {
+                "role": "events"
+              }
+            }
+          ],
+          "actionTriggers": [
+            {
+              "display": "FloatingButton",
+              "actionMod": {
+                "mod": "demo-layers-actions",
+                "script": "next-asset",
+                "args": {
+                  "Assets": "Pump A,Pump B"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "eventTable",
+          "type": "table",
+          "title": "Marked events",
+          "table": "EVENTS",
+          "marking": null,
+          "limitByMarkings": [
+            "Event Pick"
+          ],
+          "emptyMarkingBehavior": "ShowMessage",
+          "columns": [
+            "Event ID",
+            "Asset",
+            "Start",
+            "End",
+            "Severity"
+          ],
+          "legend": {
+            "visible": false
+          }
+        }
+      ],
+      "layout": {
+        "row": [
+          {
+            "visual": "demoLayers",
+            "weight": 70
+          },
+          {
+            "visual": "eventTable",
+            "weight": 30
+          }
+        ]
+      }
+    }
+  ],
+  "activePage": "Layers"
+}

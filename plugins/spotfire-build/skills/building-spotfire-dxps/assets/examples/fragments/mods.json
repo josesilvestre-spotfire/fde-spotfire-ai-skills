@@ -1,0 +1,111 @@
+{
+  "relations": [
+    {"left": "PUMP_DATA", "right": "PUMP_EVENTS", "on": [["Pump ID", "Pump ID"]]}
+  ],
+  "markings": [
+    {"name": "Selected Pump", "color": "#E94165", "default": true}
+  ],
+  "pages": [
+    {
+      "title": "Mod Gallery",
+      "visible": true,
+      "filterPanel": false,
+      "detailsOnDemand": false,
+      "filteringScheme": null,
+      "visuals": [
+        {
+          "id": "fleetTiles",
+          "type": "mod",
+          "modId": "pump-fleet-monitor-mod",
+          "title": "Pump Fleet Monitor",
+          "showTitle": false,
+          "description": "Station-grouped pump tiles. Click a tile to mark that pump.",
+          "table": "PUMP_DATA",
+          "marking": "Selected Pump",
+          "legend": {"visible": false},
+          "axes": {
+            "Tile": "<[Pump ID]>",
+            "Group by": "<[Station]>",
+            "Status": "<[Status]>",
+            "Flow": "[Flow Rate (bbl/d)]",
+            "Color": "<[Status]>"
+          },
+          "properties": {
+            "sheetTitle": "Pump Station Monitor",
+            "theme": "light",
+            "labelSize": "l",
+            "showKpis": true,
+            "showSearch": false,
+            "fleetState": {"region": "All", "search": "", "status": "All"}
+          }
+        },
+        {
+          "id": "eventTimeline",
+          "type": "mod",
+          "modId": "sfire-mods-timeline",
+          "title": "Pump Events Timeline",
+          "table": "PUMP_EVENTS",
+          "marking": null,
+          "limitByMarkings": ["Selected Pump"],
+          "emptyMarkingBehavior": "ShowAll",
+          "legend": {"visible": false},
+          "axes": {
+            "Time": "<[Start]>",
+            "Event": "<[Pump ID] NEST [Severity]>",
+            "Color": "<[Severity]>"
+          },
+          "postScript": "from Spotfire.Dxp.Application.Visuals import CategoryMode\ncontent.Axis(\"Event\").CategoryMode = CategoryMode.ShowAll\n"
+        },
+        {
+          "id": "eventCards",
+          "type": "mod",
+          "modId": "text-card-mod",
+          "title": "Event Log",
+          "table": "PUMP_EVENTS",
+          "limitExpression": "[Severity] <> \"Low\"",
+          "settings": {"UseSeparateColorForMarkedItems": true},
+          "axes": {
+            "Card by": "<baserowid()>",
+            "Content": "<[Description]>",
+            "Annotation": "<[Pump ID] NEST [Severity] NEST [Start]>",
+            "Sorting": "First([Start])",
+            "Tooltip": "<>",
+            "Color": "<[Severity]>"
+          },
+          "properties": {
+            "sortOrder": "desc",
+            "useCustomCardBy": true
+          }
+        },
+        {
+          "id": "pressureGauge",
+          "type": "mod",
+          "modId": "pump-pressure-gauge-mod",
+          "title": "Pressure Gauge",
+          "table": "PUMP_DATA",
+          "axes": {
+            "Value": ["Avg([Discharge Pressure (psig)])", "Avg([Suction Pressure (psig)])"],
+            "Gauge by": "<[Station]>"
+          },
+          "properties": {
+            "decimals": 1,
+            "alarmLevel": 1450.0,
+            "maxValue": 2000,
+            "unitLabel": "psig",
+            "showNeedle": true
+          }
+        }
+      ],
+      "layout": {"row": [
+        {"column": [
+          {"visual": "fleetTiles", "weight": 60},
+          {"visual": "eventTimeline", "weight": 40}
+        ], "weight": 65},
+        {"column": [
+          {"visual": "eventCards", "weight": 60},
+          {"visual": "pressureGauge", "weight": 40}
+        ], "weight": 35}
+      ]}
+    }
+  ]
+}

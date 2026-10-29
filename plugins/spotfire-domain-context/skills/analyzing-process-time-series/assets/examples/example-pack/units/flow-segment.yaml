@@ -1,0 +1,276 @@
+card_version: "1.0"
+unit_id: flow-segment
+unit_class: flow_segment
+service: >
+  A generic flow segment: fluid enters at one pressure, leaves at a lower one, and the
+  difference is consumed by friction. The analysable quantity is the gap between the
+  measured differential and the differential predicted from flow.
+persona: example_analyst
+description: >
+  A synthetic class card, written to exercise every layer of the engine rather than to
+  describe any real equipment. It carries the minimum that makes an analysis honest: an
+  identity to verify the source system, an inequality that physics guarantees, a power law
+  that encodes the flow regime, a regime to condition on, confounders to exclude, and one
+  failure mode with a multi-role signature.
+
+  Like any class card it carries no descriptive operating bands. Those come from the
+  calibration overlay in a deployment profile. The one band here is normative: a model
+  quality target, which is class knowledge because it is a statement about the model, not
+  about the asset.
+
+roles:
+  - id: inlet_pressure
+    description: Pressure entering the segment
+    kind: sensor
+    quantity: pressure
+    units: kPa
+    limits: {lo: 0}
+    control_role: IND
+    source: "Absolute pressure cannot be negative. The operating band is asset-specific and comes from the overlay."
+
+  - id: outlet_pressure
+    description: Pressure leaving the segment
+    kind: sensor
+    quantity: pressure
+    units: kPa
+    limits: {lo: 0}
+    control_role: IND
+    source: "Absolute pressure cannot be negative. The operating band is asset-specific and comes from the overlay."
+
+  - id: flow
+    description: Volumetric throughput
+    kind: sensor
+    quantity: flow
+    units: m3/h
+    limits: {lo: 0}
+    control_role: DV
+    source: "Negative throughput on a one-way segment is not a measurement. Range is asset-specific."
+
+  - id: temperature
+    description: Fluid temperature
+    kind: sensor
+    quantity: temperature
+    units: degC
+    control_role: DV
+    source: "Range depends on the service and comes from the overlay. Exclude rail-pinned samples when calibrating it."
+
+  - id: density
+    description: Fluid density from periodic sampling
+    kind: lab
+    quantity: concentration
+    units: kg/m3
+    limits: {lo: 0}
+    control_role: DV
+    update_interval: 7d
+    source: "Declared `lab` because it is sampled rather than measured continuously, so it will be zero-order-held in any export and anything computed from it inherits that staleness."
+
+  - id: additive_ppm
+    description: Friction-reducing additive dose
+    kind: sensor
+    quantity: concentration
+    units: ppm
+    limits: {lo: 0}
+    control_role: MV
+    source: "Dose is an operations decision, so the band comes from the overlay. A fixed-dose deployment will show this tag as constant, which makes the additive_change confounder untestable there."
+
+  - id: measured_dp
+    description: Measured differential across the segment
+    kind: calculated
+    quantity: differential_pressure
+    units: kPa
+    control_role: IND
+    source: "Inlet minus outlet, computed in the source system. Verify that definition before trusting anything built on it."
+
+  - id: predicted_dp
+    description: Differential predicted from flow and fluid properties
+    kind: calculated
+    quantity: differential_pressure
+    units: kPa
+    control_role: IND
+    source: "A friction model over flow, density and temperature. Range is asset-specific; no class band."
+
+  - id: residual
+    description: Unexplained differential, measured minus predicted
+    kind: calculated
+    quantity: differential_pressure
+    units: kPa
+    control_role: IND
+    source: >
+      Deliberately carries NO `normal` band at any layer: a fixed band in kPa is rate-biased,
+      because the same fractional model error is a small number at low flow and a large one at
+      high flow. The band lives on residual_pct instead.
+
+derived:
+  - id: residual_pct
+    expr: "100.0 * residual / predicted_dp"
+    units: percent
+    description: Residual normalised by prediction, comparable across flow rates
+    normal: [-5, 5]
+    band_type: normative
+    source: >
+      A MODEL QUALITY TARGET, not a description of any asset: a correctly tuned friction model
+      reproduces a measured differential to within a few percent. Exceeding it means the model is
+      wrong or the segment is restricted. The band must not be widened to fit the data.
+
+invariants:
+  - id: residual_identity
+    kind: identity
+    expr: "residual == measured_dp - predicted_dp"
+    tol_abs: 0.01
+    severity: high
+    source: "Definition of the residual. A break here means the source-system formula is wrong or the columns are misaligned."
+
+  - id: flow_drops_pressure
+    kind: inequality
+    expr: "inlet_pressure > outlet_pressure"
+    severity: critical
+    source: "Fluid flows from high pressure to low. Violation means a swapped tag or a signed unit error."
+
+  - id: dp_scales_with_flow
+    kind: power_law
+    expr: "measured_dp ~ flow ** n"
+    expected: 2.0
+    tol: 0.3
+    severity: medium
+    source: "Fully turbulent friction gives a differential close to quadratic in rate. An exponent far from 2 means the friction model, the geometry, or the flow meter is wrong."
+
+  - id: residual_centred
+    kind: range
+    expr: "mean(residual_pct) in [-3, 3]"
+    window: full
+    severity: medium
+    source: "A calibrated model is unbiased. Persistent bias is an untuned coefficient, an omitted term, or a real restriction."
+
+  - id: efficiency_at_reference
+    kind: range
+    expr: "mean(residual_pct) in [-1, 1]"
+    window: full
+    severity: low
+    requires_roles: [pump_speed]
+    source: >
+      Demonstrates the requires_roles gate. This tighter tolerance only applies at a declared
+      reference condition, which cannot be identified without a speed role. Absent one, the
+      invariant must report "not evaluated" rather than a violation, because an unconditional
+      assertion the data cannot support is worse than a missing one.
+
+confounders:
+  - id: flow_regime_shift
+    description: >
+      Throughput changed, so measured and predicted differential both move. The absolute residual
+      grows with rate even when the segment is healthy, because a small coefficient error is
+      amplified by the square of flow.
+    roles: [flow]
+    test: regime_shift
+    source: "Rate dependence of turbulent friction"
+
+  - id: temperature_effect
+    description: >
+      Fluid properties are temperature dependent. If the model uses a stale sampled density, a
+      temperature swing shows up as residual rather than as a segment problem.
+    roles: [temperature, density]
+    test: correlates_with
+    source: "Temperature dependence of fluid properties"
+
+  - id: additive_change
+    description: >
+      A friction-reducing additive suppresses the differential. A dose change moves the measured
+      differential within hours with no change in the segment itself.
+    roles: [additive_ppm]
+    test: step_change
+    source: "Additive dose response"
+
+  - id: sample_staleness
+    description: >
+      Density is sampled and held constant between samples, so the prediction inherits that
+      staleness and the residual carries a sawtooth that resets at each new sample. A model
+      artifact, not a segment condition.
+    roles: [density]
+    test: zero_order_hold
+    source: "Zero-order-hold artifact of merging a slow sample cadence into a faster frame"
+
+failure_modes:
+  - id: restriction
+    name: Progressive restriction of the segment bore
+    severity: high
+    onset: weeks
+    signature:
+      residual: up
+      measured_dp: up
+      predicted_dp: unchanged
+      temperature: down
+    confounders: [temperature_effect, flow_regime_shift, additive_change]
+    differentials: [instrument_drift]
+    discriminators:
+      - "Onset is weeks of sustained positive slope, not a step. A step is an additive change or a valve."
+      - "Survives regime conditioning: residual_pct trends up within a fixed flow band."
+    verify_in_field:
+      - "Inspect or pig the segment and compare the residual before and after."
+    source: "Synthetic example; a deposition-style degradation with a multi-role signature"
+
+  - id: instrument_drift
+    name: Pressure transmitter calibration drift
+    severity: medium
+    onset: weeks
+    signature:
+      residual: up
+      inlet_pressure: up
+      flow: unchanged
+    confounders: [sample_staleness, flow_regime_shift]
+    differentials: [restriction]
+    discriminators:
+      - "Only one of the two pressure tags drifts; the other is stable."
+      - "No corroborating change in any non-pressure role."
+    verify_in_field:
+      - "Compare the transmitter against a calibrated reference; pull the last calibration date."
+    source: "Synthetic example; instrument drift as a differential for a real degradation"
+
+  - id: blockage_step
+    name: Abrupt partial blockage
+    severity: high
+    onset: instant
+    signature:
+      residual: sharp_up
+      measured_dp: sharp_up
+      additive_ppm: unchanged
+    confounders: [additive_change, flow_regime_shift]
+    discriminators:
+      - "A step with no additive or temperature explanation."
+    verify_in_field:
+      - "Confirm valve positions against control system feedback."
+    source: "Synthetic example; a step-onset counterpart to the ramp-onset restriction"
+
+regimes:
+  - id: flow_band
+    by: flow
+    method: bin
+    params: {width: 20, units: m3/h}
+
+checks:
+  enabled:
+    - dq_timestamp_regularity
+    - dq_duplicate_series
+    - dq_partial_rows
+    - dq_flatline
+    - dq_zero_order_hold
+    - dq_rail_saturation
+    - dq_missing
+    - phys_range
+    - rel_identity
+    - rel_inequality
+    - rel_power_law
+    - stat_residual_bias
+    - stat_regime_drift
+    - stat_changepoint
+    - stat_detector_firing_rate
+    - sme_signature_match
+
+notes: >
+  Synthetic. Every number here is invented for illustration and none of it is a citation to
+  anything. A real card carries a real source on every bound, or else the marker token the
+  report scans for, so that an unsourced number is surfaced rather than quietly trusted.
+  (That token is spelled out in the schema, not here: writing it in prose would make this
+  card report itself as unsourced.)
+
+  This card is the reference for what belongs at the class layer: physics, identities, failure
+  modes, confounders and regimes. What is missing from it is the point -- there are no operating
+  bands, no tag names, and no data path, because all three are deployment facts.

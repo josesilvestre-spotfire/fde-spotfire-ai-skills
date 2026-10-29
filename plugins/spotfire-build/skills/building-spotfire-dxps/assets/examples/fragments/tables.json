@@ -1,0 +1,253 @@
+{
+  "specVersion": 1,
+  "defaultTable": "PUMP_DATA",
+  "markings": [
+    {"name": "Selected Pump", "color": "#E94165", "default": true}
+  ],
+  "properties": [
+    {"name": "SelectedPumpId", "type": "String", "default": "P-101",
+     "description": "Pump highlighted in the pump health table", "listValued": false},
+    {"name": "AlertThreshold", "type": "Real", "default": 1200.0,
+     "description": "Discharge pressure alarm limit (psig)"},
+    {"name": "MotorCurrentLimit", "type": "Real", "default": 120.0,
+     "description": "Motor current (A) above which a pump counts as overloaded", "listValued": false}
+  ],
+  "pages": [
+    {
+      "title": "Pump Tables",
+      "visuals": [
+        {
+          "id": "pumpReadings",
+          "type": "table",
+          "title": "Pump Readings",
+          "table": "PUMP_DATA",
+          "columns": ["Timestamp", "Station", "Pump ID", "Status", "Flow Rate (bbl/d)",
+                      "Discharge Pressure (psig)", "Suction Pressure (psig)", "Motor Current (A)"],
+          "sort": [
+            {"column": "Timestamp", "descending": true},
+            {"column": "Pump ID", "descending": false}
+          ],
+          "widths": {"Timestamp": 140, "Pump ID": 80, "Status": 90, "Flow Rate (bbl/d)": 120},
+          "coloring": [
+            {
+              "columns": ["Status"],
+              "categorical": {"Running": "#2E8540", "Tripped": "#E94165", "Standby": "#F2B134"},
+              "default": "#999999"
+            },
+            {
+              "columns": ["Flow Rate (bbl/d)"],
+              "gradient": [
+                {"at": "min", "color": "#FFFFFF"},
+                {"at": "50%", "color": "#C6D1F7"},
+                {"at": "max", "color": "#3050EF"}
+              ]
+            },
+            {
+              "columns": ["Discharge Pressure (psig)", "Suction Pressure (psig)"],
+              "gradient": [
+                {"at": "average", "color": "#FFFFFF"},
+                {"at": 1500.0, "color": "#F2B134"}
+              ],
+              "rules": [
+                {"type": "greaterThan", "value": "[$AlertThreshold]", "color": "#8B0000"},
+                {"type": "top", "count": 5, "color": "#333C66"}
+              ]
+            },
+            {
+              "columns": ["Motor Current (A)"],
+              "fixed": "#F4F4F4",
+              "rules": [
+                {"type": "greaterThan", "value": "[$MotorCurrentLimit]", "color": "#E94165"},
+                {"type": "between", "low": 90.0, "high": 120.0, "color": "#F2B134"},
+                {"type": "expression", "expression": "[Status] = \"Tripped\"", "color": "#999999"}
+              ]
+            }
+          ]
+        },
+        {
+          "id": "eventLog",
+          "type": "table",
+          "title": "Pump Events",
+          "table": "PUMP_EVENTS",
+          "sort": [{"column": "Start", "descending": true}],
+          "widths": {"Event ID": 90, "Description": 320},
+          "coloring": {
+            "columns": ["Severity"],
+            "categorical": {"High": "#E94165", "Medium": "#F2B134", "Low": "#2E8540"},
+            "rules": [{"type": "equal", "value": "Critical", "color": "#8B0000"}]
+          }
+        },
+        {
+          "id": "stationMatrix",
+          "type": "crossTable",
+          "title": "Station by Status",
+          "table": "PUMP_DATA",
+          "rows": ["[Station]", "[Pump ID]"],
+          "columns": ["[Status]"],
+          "measures": [
+            "Avg([Flow Rate (bbl/d)]) as [Avg Flow (bbl/d)]",
+            "Max([Motor Current (A)]) as [Max Current (A)]",
+            "Count() as [Readings]"
+          ],
+          "totals": {"rows": true, "columns": false},
+          "coloring": [
+            {
+              "measures": ["Avg Flow (bbl/d)"],
+              "gradient": [
+                {"at": "min", "color": "#FFFFFF"},
+                {"at": "median", "color": "#C6D1F7"},
+                {"at": "max", "color": "#3050EF"}
+              ]
+            },
+            {
+              "measures": ["Max([Motor Current (A)]) as [Max Current (A)]"],
+              "rules": [
+                {"type": "greaterThan", "value": "[$MotorCurrentLimit]", "color": "#E94165"},
+                {"type": "equal", "value": 0.0, "color": "#999999"}
+              ]
+            },
+            {
+              "rules": [{"type": "bottom", "count": 3, "color": "#F2B134"}]
+            }
+          ]
+        },
+        {
+          "id": "flowStatistics",
+          "type": "summaryTable",
+          "title": "Flow and Pressure Statistics",
+          "table": "PUMP_DATA",
+          "columns": ["Flow Rate (bbl/d)", "Discharge Pressure (psig)", "Suction Pressure (psig)",
+                      "Motor Current (A)"],
+          "statistics": ["Count", "Avg", "Min", "Max", "StdDev"]
+        }
+      ],
+      "layout": {"column": [
+        {"row": [{"visual": "pumpReadings", "weight": 60}, {"visual": "eventLog", "weight": 40}], "weight": 55},
+        {"row": [{"visual": "stationMatrix", "weight": 62}, {"visual": "flowStatistics", "weight": 38}], "weight": 45}
+      ]}
+    },
+    {
+      "title": "Pump Health",
+      "visuals": [
+        {
+          "id": "fleetKpis",
+          "type": "kpiChart",
+          "title": "Fleet KPIs",
+          "table": "PUMP_DATA",
+          "marking": null,
+          "limitByMarkings": ["Selected Pump"],
+          "emptyMarkingBehavior": "ShowAll",
+          "coloring": {"fixed": "#333C66"},
+          "settings": {"MinTilesPerRow": 3, "NewRowPerKpi": true, "ShowTitlesForKpis": true,
+                       "SortMode": "HighestFirst"},
+          "kpis": [
+            {
+              "title": "Average Flow",
+              "value": "Avg([Flow Rate (bbl/d)]) as [Avg Flow (bbl/d)]",
+              "comparative": "Max([Flow Rate (bbl/d)]) * 0.9",
+              "time": "<BinByDateTime([Timestamp],\"Year.Month.DayOfMonth\",2)>",
+              "tileBy": "[Station]",
+              "coloring": {"gradient": [{"at": "min", "color": "#FFFFFF"}, {"at": "max", "color": "#257347"}]},
+              "settings": {"ShowSparklineScale": false, "EmptyTileText": "-"}
+            },
+            {
+              "title": "Peak Motor Current",
+              "value": "Max([Motor Current (A)])",
+              "tileBy": ["[Pump ID]"],
+              "coloring": {
+                "rules": [
+                  {"type": "greaterThan", "value": "[$MotorCurrentLimit]", "color": "#E94165"},
+                  {"type": "lessThan", "value": 90.0, "color": "#2E8540"}
+                ],
+                "default": "#F2B134"
+              }
+            },
+            {
+              "title": "Readings",
+              "value": "Count()",
+              "time": "[Timestamp]"
+            }
+          ]
+        },
+        {
+          "id": "pumpHealth",
+          "type": "graphicalTable",
+          "title": "Pump Health",
+          "table": "PUMP_DATA",
+          "rows": "[Pump ID]",
+          "columns": [
+            {
+              "kind": "sparkline",
+              "title": "Flow Trend",
+              "expression": "Avg([Flow Rate (bbl/d)])",
+              "x": "<BinByDateTime([Timestamp],\"Year.Month.DayOfMonth\",2)>",
+              "color": "#333C66",
+              "individualScaling": true,
+              "width": 160,
+              "settings": {"LineWidth": 2, "ShowStopValue": true}
+            },
+            {
+              "kind": "calculatedValue",
+              "title": "Pump",
+              "expression": "First([Pump ID])",
+              "width": 70,
+              "coloring": {"rules": [
+                {"type": "equal", "value": "[$SelectedPumpId]", "color": "#E94165"}
+              ]}
+            },
+            {
+              "kind": "calculatedValue",
+              "title": "Status",
+              "expression": "Last([Status])",
+              "width": 80,
+              "coloring": {"rules": [
+                {"type": "equal", "value": "Tripped", "color": "#E94165"},
+                {"type": "equal", "value": "Standby", "color": "#F2B134"}
+              ]}
+            },
+            {
+              "kind": "calculatedValue",
+              "title": "Last Discharge (psig)",
+              "expression": "Last([Discharge Pressure (psig)])",
+              "width": 110,
+              "coloring": {"rules": [
+                {"type": "greaterThan", "value": "[$AlertThreshold]", "color": "#E94165",
+                 "settings": {"ManualDisplayName": "Above alarm limit"}},
+                {"type": "lessThan", "value": 200.0, "color": "#F2B134"}
+              ]}
+            },
+            {
+              "kind": "icon",
+              "title": "Motor Load",
+              "expression": "Max([Motor Current (A)])",
+              "width": 90,
+              "coloring": {"rules": [
+                {"type": "greaterThan", "value": "[$MotorCurrentLimit]", "color": "#E94165", "shape": "Circle"},
+                {"type": "between", "low": 90.0, "high": 120.0, "color": "#F2B134", "shape": "TriangleUp"},
+                {"type": "lessThan", "value": 90.0, "color": "#2E8540", "shape": "Circle"}
+              ]},
+              "settings": {"IconSize": 14}
+            },
+            {
+              "kind": "bulletGraph",
+              "title": "Flow vs Design",
+              "expression": "Avg([Flow Rate (bbl/d)])",
+              "comparative": "Max([Flow Rate (bbl/d)]) * 0.9",
+              "color": "#333C66",
+              "comparativeColor": "#E94165",
+              "width": 180,
+              "ranges": [
+                {"expression": "Max([Flow Rate (bbl/d)]) * 0.5", "color": "#E6E6E6", "label": "Low"},
+                {"expression": "Max([Flow Rate (bbl/d)]) * 0.8", "color": "#CCCCCC", "label": "Normal"}
+              ]
+            }
+          ]
+        }
+      ],
+      "layout": {"column": [
+        {"visual": "fleetKpis", "weight": 30},
+        {"visual": "pumpHealth", "weight": 70}
+      ]}
+    }
+  ]
+}

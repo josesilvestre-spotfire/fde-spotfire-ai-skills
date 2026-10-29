@@ -1,0 +1,19 @@
+# The example pack. Synthetic, domain-free, and the reference implementation of what a
+# pack looks like. Copy this shape when starting a real one.
+#
+# It exists so the engine's tests and documentation have something to run against without
+# depending on any real domain pack and without naming any real asset.
+
+pack_id: example
+name: Example Pack
+version: 1.0.0
+description: >
+  A single abstract unit -- a flow segment with an inlet, an outlet and a measured
+  differential -- used to exercise every layer of the engine: schema extension, card
+  validation, calibration overlay, tag resolution, regime conditioning and the full check
+  battery. It is deliberately not any particular industry.
+
+engine: ">=1.1,<2.0"
+
+schema_extensions: schema/extensions.yaml
+units_dir: units

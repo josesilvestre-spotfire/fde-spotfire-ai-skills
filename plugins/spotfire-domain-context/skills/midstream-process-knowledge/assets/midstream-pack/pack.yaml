@@ -1,0 +1,34 @@
+# Midstream process knowledge: a pack for the tssme engine (analyzing-process-time-series skill).
+#
+# A pack contributes domain knowledge to a domain-free engine: vocabulary, unit cards, and
+# checks that encode physics the general library has no business knowing. The engine finds
+# this file by scanning for `pack.yaml`; it never names this pack in code.
+#
+# What belongs here: what a unit IS, how it FAILS, and what benign explanation mimics that
+# failure. Class knowledge, reusable across every asset of that class.
+#
+# What does NOT belong here: any number measured from a specific asset, any historian tag
+# name, any file path, any site. Those are deployment facts and live in a profile.
+
+pack_id: midstream-process
+name: Midstream Process Knowledge
+version: 1.1.0
+description: >
+  Process knowledge for midstream oil and gas: liquids pipeline pump stations, amine
+  treating, TEG dehydration, cryogenic NGL recovery and Y-grade fractionation. Cards carry
+  roles, derived quantities, invariants, regimes, confounders and failure modes, every bound
+  sourced or explicitly marked UNVERIFIED. Pending SME review.
+
+engine: ">=1.2,<2.0"
+
+schema_extensions: schema/extensions.yaml
+units_dir: units
+check_modules:
+  - checks/rotating.py
+
+personas:
+  - pipeline_engineer
+  - gas_treating_engineer
+  - process_engineer_ngl
+  - rotating_equipment_engineer
+  - measurement_engineer

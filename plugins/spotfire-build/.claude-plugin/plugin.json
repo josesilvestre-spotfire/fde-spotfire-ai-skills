@@ -1,0 +1,16 @@
+{
+  "name": "spotfire-build",
+  "version": "0.1.0-alpha.1",
+  "description": "Produce a Spotfire DXP and its parts through the Spotfire API: generated IronPython builders, data functions, IronPython scripts, styling, visualization mods and action mods.",
+  "author": {
+    "name": "josesilvestre-spotfire"
+  },
+  "keywords": [
+    "spotfire",
+    "dxp",
+    "ironpython",
+    "data-functions",
+    "mods",
+    "styling"
+  ]
+}

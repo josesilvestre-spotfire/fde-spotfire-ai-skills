@@ -1,0 +1,7 @@
+VisualizationData.DataTableReference
+ModAxis.Expression
+ColorAxis.Expression
+ModProperty`1.Value
+HtmlTextArea.HtmlContent
+Visual.Title
+Visual.ShowTitle

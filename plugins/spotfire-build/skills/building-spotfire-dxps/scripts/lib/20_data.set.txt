@@ -1,0 +1,19 @@
+# Public Spotfire properties assigned by lib/20_data.py
+# check: python scripts/sfapi.py has --set --stdin < lib/20_data.set.txt
+DataProperty.Value
+DataSource.IsPromptingAllowed
+TextDataReaderSettings.Separator
+TextDataReaderSettings.CultureName
+TextDataReaderSettings.CodePage
+DataTableSaveSettings.UseLinkedData
+DataTableCollection.DefaultTableReference
+DataColumnProperties.Description
+DataColumnProperties.Formatter
+CalculatedColumn.Expression
+HierarchyColumn.HierarchyDefinition
+NumberFormatter.FormatString
+DateTimeFormatter.FormatString
+DataMarkingSelection.Name
+DataMarkingSelection.Color
+DataMarkingSelectionCollection.DefaultMarkingReference
+DataFilteringSelection.Name

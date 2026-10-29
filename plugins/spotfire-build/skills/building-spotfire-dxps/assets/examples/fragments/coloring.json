@@ -1,0 +1,238 @@
+{
+  "specVersion": 1,
+  "defaultTable": "PUMP_DATA",
+  "properties": [
+    {"name": "DischargeAlarmPsig", "type": "Real", "default": 1400.0,
+     "description": "Discharge pressure alarm limit (psig): alarm lines, threshold coloring and KPI tiles"},
+    {"name": "TrippedStatus", "type": "String", "default": "Tripped",
+     "description": "Status value highlighted on the status share chart"},
+    {"name": "LastOverhaulDate", "type": "DateTime", "default": "2026-03-15T00:00:00",
+     "description": "Date of the last fleet overhaul, drawn on the discharge pressure trend"},
+    {"name": "ShutoffPressurePsig", "type": "Real", "default": 1600.0,
+     "description": "Design pump curve: discharge pressure at zero flow (psig)"},
+    {"name": "CurveCoefficient", "type": "Real", "default": 0.0000002,
+     "description": "Design pump curve: pressure loss per squared flow (psig per (bbl/d)^2)"}
+  ],
+  "pages": [
+    {
+      "title": "Coloring Rules",
+      "visuals": [
+        {
+          "id": "flowByStatus",
+          "type": "barChart",
+          "title": "Flow by Station and Status",
+          "table": "PUMP_DATA",
+          "x": "<[Station]>",
+          "y": "Sum([Flow Rate (bbl/d)])",
+          "stack": "stacked",
+          "colorBy": "<[Status]>",
+          "coloring": {
+            "categorical": {"Running": "#2E8540", "Tripped": "#E94165", "(Empty)": "#CCCCCC"},
+            "default": "#999999"
+          }
+        },
+        {
+          "id": "pressureScatter",
+          "type": "scatterPlot",
+          "title": "Discharge Pressure vs Flow",
+          "table": "PUMP_DATA",
+          "x": "[Flow Rate (bbl/d)]",
+          "y": "[Discharge Pressure (psig)]",
+          "colorBy": "[Motor Current (A)]",
+          "coloring": {
+            "gradient": [
+              {"at": "min", "color": "#3050EF"},
+              {"at": "25%", "color": "#8FA2F5"},
+              {"at": "median", "color": "#FFFFFF"},
+              {"at": 180.0, "color": "#F2B134"},
+              {"at": "max", "color": "#E94165"}
+            ],
+            "settings": {"EmptyColor": "#FFCCCCCC"}
+          },
+          "fittingModels": [
+            {"kind": "straightLine", "color": "#333C66", "label": "Linear Fit",
+             "settings": {"Line.LineStyle": "Dash", "Line.Width": 2}},
+            {"kind": "curve",
+             "expression": "[$ShutoffPressurePsig] - [$CurveCoefficient] * [Axis.X] * [Axis.X]",
+             "color": "#E94165", "label": "Design Curve"}
+          ]
+        },
+        {
+          "id": "statusShare",
+          "type": "pieChart",
+          "title": "Readings by Status",
+          "table": "PUMP_DATA",
+          "sector": "<[Status]>",
+          "size": "Count()",
+          "coloring": {
+            "rules": [
+              {"type": "equal", "value": "[$TrippedStatus]", "color": "#E94165"},
+              {"type": "equal", "value": "Standby", "color": "#F2B134"}
+            ],
+            "default": "#C8CCD9"
+          }
+        },
+        {
+          "id": "dischargeByPump",
+          "type": "barChart",
+          "title": "Average Discharge Pressure by Pump",
+          "table": "PUMP_DATA",
+          "x": "<[Pump ID]>",
+          "y": "Avg([Discharge Pressure (psig)])",
+          "sort": "descending",
+          "colorBy": "Avg([Discharge Pressure (psig)])",
+          "coloring": {
+            "rules": [
+              {"type": "greaterThan", "value": "[$DischargeAlarmPsig]", "color": "#E94165"},
+              {"type": "between", "low": 1200.0, "high": 1400.0, "color": "#F2B134"},
+              {"type": "lessThan", "value": "average", "color": "#3050EF"},
+              {"type": "equal", "value": 0.0, "color": "#999999"}
+            ],
+            "default": "#333C66"
+          },
+          "referenceLayers": [
+            {"kind": "horizontalLine", "value": "[$DischargeAlarmPsig]", "color": "#E94165",
+             "dash": "dash", "width": 2, "label": "Discharge Alarm"},
+            {"kind": "band", "low": "P10([Discharge Pressure (psig)])",
+             "high": "P90([Discharge Pressure (psig)])", "color": "#33333C66", "label": "P10-P90 Range"}
+          ]
+        },
+        {
+          "id": "currentRanking",
+          "type": "barChart",
+          "title": "Peak Motor Current by Pump",
+          "table": "PUMP_DATA",
+          "x": "<[Pump ID]>",
+          "y": "Max([Motor Current (A)])",
+          "sort": "descending",
+          "colorBy": "Max([Motor Current (A)])",
+          "coloring": {
+            "fixed": "#C8CCD9",
+            "rules": [
+              {"type": "expression", "expression": "[Axis.Color] > 180", "color": "#8B0000"},
+              {"type": "top", "count": 3, "color": "#E94165",
+               "settings": {"ManualDisplayName": "Top 3 Current"}},
+              {"type": "bottom", "count": 3, "color": "#2E8540"}
+            ]
+          }
+        },
+        {
+          "id": "flowHeat",
+          "type": "heatMap",
+          "title": "Daily Flow by Pump",
+          "table": "PUMP_DATA",
+          "x": "<BinByDateTime([Timestamp],\"Year.Month.DayOfMonth\",2)>",
+          "y": "<[Pump ID]>",
+          "value": "Avg([Flow Rate (bbl/d)])",
+          "coloring": {
+            "gradient": [
+              {"at": "min", "color": "#FFFFFF"},
+              {"at": "average", "color": "#C6D1F7"},
+              {"at": "max", "color": "#333C66"}
+            ]
+          }
+        }
+      ],
+      "layout": {"column": [
+        {"row": [
+          {"visual": "flowByStatus", "weight": 34},
+          {"visual": "pressureScatter", "weight": 33},
+          {"visual": "statusShare", "weight": 33}
+        ], "weight": 50},
+        {"row": [
+          {"visual": "dischargeByPump", "weight": 34},
+          {"visual": "currentRanking", "weight": 33},
+          {"visual": "flowHeat", "weight": 33}
+        ], "weight": 50}
+      ]}
+    },
+    {
+      "title": "Reference Lines",
+      "visuals": [
+        {
+          "id": "fleetKpis",
+          "type": "kpiChart",
+          "title": "Fleet KPIs",
+          "table": "PUMP_DATA",
+          "kpis": [
+            {
+              "title": "Average Discharge",
+              "value": "Avg([Discharge Pressure (psig)])",
+              "tileBy": "[Station]",
+              "coloring": {
+                "rules": [{"type": "greaterThan", "value": "[$DischargeAlarmPsig]", "color": "#E94165"}],
+                "default": "#2E8540"
+              }
+            },
+            {
+              "title": "Average Flow",
+              "value": "Avg([Flow Rate (bbl/d)])",
+              "time": "[Timestamp]",
+              "coloring": {"gradient": [{"at": "min", "color": "#FFFFFF"}, {"at": "max", "color": "#257347"}]}
+            }
+          ]
+        },
+        {
+          "id": "dischargeTrend",
+          "type": "lineChart",
+          "title": "Discharge Pressure Trend",
+          "table": "PUMP_DATA",
+          "x": "[Timestamp]",
+          "y": "Avg([Discharge Pressure (psig)])",
+          "colorBy": "<[Station]>",
+          "referenceLayers": [
+            {"kind": "horizontalLine", "value": "[$DischargeAlarmPsig]", "color": "#E94165",
+             "dash": "dash", "width": 2, "label": "Discharge Alarm"},
+            {"kind": "horizontalLine", "value": "Avg([Discharge Pressure (psig)])", "color": "#333C66",
+             "dash": "dot", "width": 1, "label": "Fleet Average"},
+            {"kind": "verticalLine", "value": "DateTime(2026,5,31,0,0,0,0)", "color": "#666666",
+             "dash": "dot", "label": "Planned Shutdown"},
+            {"kind": "verticalLine", "value": "[$LastOverhaulDate]", "color": "#2E8540",
+             "dash": "double", "width": 3, "label": "Last Overhaul"},
+            {"kind": "band", "low": "Min([Start])", "high": "Min([End])", "table": "PUMP_EVENTS",
+             "color": "#40E94165",
+             "settings": {"ValueAxis": "X", "ElementByAxis.Expression": "<baserowid()>",
+                          "EvaluationModes": "Color, Trellis"}}
+          ]
+        },
+        {
+          "id": "flowTrend",
+          "type": "lineChart",
+          "title": "Average Flow Trend",
+          "table": "PUMP_DATA",
+          "x": "[Timestamp]",
+          "y": "Avg([Flow Rate (bbl/d)])",
+          "coloring": {"fixed": "#333C66"},
+          "referenceLayers": [
+            {"kind": "band", "low": "40000.0", "high": "60000.0", "color": "#4D2E8540",
+             "dash": "dash", "width": 1, "label": "Target Range"},
+            {"kind": "horizontalLine", "value": "50000.0", "dash": "solid"}
+          ]
+        },
+        {
+          "id": "eventLog",
+          "type": "table",
+          "title": "Pump Events",
+          "table": "PUMP_EVENTS",
+          "columns": ["Start", "End", "Pump ID", "Severity", "Description"],
+          "sort": [{"column": "Start", "descending": true}],
+          "coloring": {
+            "columns": ["Severity"],
+            "rules": [
+              {"type": "equal", "value": "High", "color": "#E94165"},
+              {"type": "equal", "value": "Medium", "color": "#F2B134"}
+            ]
+          }
+        }
+      ],
+      "layout": {"column": [
+        {"visual": "fleetKpis", "weight": 20},
+        {"visual": "dischargeTrend", "weight": 45},
+        {"row": [
+          {"visual": "flowTrend", "weight": 60},
+          {"visual": "eventLog", "weight": 40}
+        ], "weight": 35}
+      ]}
+    }
+  ]
+}

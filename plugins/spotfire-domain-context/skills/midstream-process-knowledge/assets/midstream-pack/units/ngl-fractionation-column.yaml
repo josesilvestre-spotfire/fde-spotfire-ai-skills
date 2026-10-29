@@ -1,0 +1,390 @@
+card_version: "1.0"
+unit_id: ngl-fractionation-column
+unit_class: distillation_column
+service: >
+  One column of a Y-grade NGL fractionation train (deethanizer, depropanizer, debutanizer or
+  deisobutanizer), splitting a light key overhead from a heavy key in the bottoms. The
+  analysable quantities are the separation achieved for the reflux and reboil spent, column
+  dP at matched rate, and tray temperatures read only at constant pressure.
+persona: process_engineer_ngl
+description: >
+  DRAFT CARD, pending SME review. Written from the process reference in this skill
+  (references/unit-reference.md, Y-grade fractionation). It validates against the engine
+  schema but has never been run against plant data, and every failure mode is marked
+  UNVERIFIED until a process engineer confirms it.
+
+  The card is generic across the train: `overhead_impurity` is the heavy key in the
+  distillate and `bottoms_impurity` is the light key in the bottoms, whichever column this
+  is. Refrigeration roles apply to the deethanizer only and are optional.
+
+  Product specs (for example HD-5 propane, natural gasoline RVP) are contractual and come
+  from the deployment profile as normative bands, never from this card.
+
+topology:
+  upstream: [ngl_recovery, previous_column]
+  downstream: [next_column, product_storage]
+
+roles:
+  - id: feed_flow
+    description: Column feed rate
+    kind: sensor
+    quantity: flow
+    units: BPD
+    limits: {lo: 0}
+    control_role: DV
+    source: "Negative flow is not a measurement. Asset-specific range."
+
+  - id: design_feed_flow
+    description: Design feed rate, supplied by the deployment as a constant column
+    kind: manual
+    quantity: flow
+    units: BPD
+    limits: {lo: 0}
+    control_role: IND
+    source: "An asset record value that makes the rate regime scale-free. Required: without it there is no rate regime."
+
+  - id: feed_light_key_frac
+    description: Light key content of the feed
+    kind: sensor
+    quantity: concentration
+    units: mol%
+    limits: {lo: 0, hi: 100}
+    control_role: DV
+    required: false
+    source: "Analyser or lab value. Composition is the hidden regime of every column, so this role evidences the most important confounder."
+
+  - id: column_pressure
+    description: Column operating pressure
+    kind: sensor
+    quantity: pressure
+    units: psig
+    control_role: CV
+    source: "Tray temperatures are composition proxies only at constant pressure, so pressure is a regime. Asset-specific range."
+
+  - id: column_dp
+    description: Differential pressure across the column
+    kind: sensor
+    quantity: differential_pressure
+    units: psi
+    control_role: IND
+    source: "Flooding and fouling indicator. Scales with vapour rate, so it is compared within rate regimes."
+
+  - id: overhead_temperature
+    description: Overhead vapour temperature
+    kind: sensor
+    quantity: temperature
+    units: degF
+    control_role: IND
+    source: "Asset-specific range."
+
+  - id: bottoms_temperature
+    description: Bottoms liquid temperature
+    kind: sensor
+    quantity: temperature
+    units: degF
+    control_role: IND
+    source: "Asset-specific range."
+
+  - id: sensitive_tray_temperature
+    description: Temperature of the control tray
+    kind: sensor
+    quantity: temperature
+    units: degF
+    control_role: CV
+    required: false
+    source: "Usually on setpoint, so low variance is controller performance, not health."
+
+  - id: reflux_flow
+    description: Reflux rate
+    kind: sensor
+    quantity: flow
+    units: BPD
+    limits: {lo: 0}
+    control_role: MV
+    source: "Negative flow is not a measurement."
+
+  - id: distillate_flow
+    description: Overhead product rate
+    kind: sensor
+    quantity: flow
+    units: BPD
+    limits: {lo: 0}
+    control_role: IND
+    source: "Negative flow is not a measurement."
+
+  - id: bottoms_flow
+    description: Bottoms product rate
+    kind: sensor
+    quantity: flow
+    units: BPD
+    limits: {lo: 0}
+    control_role: IND
+    source: "Negative flow is not a measurement."
+
+  - id: reboiler_duty
+    description: Reboiler heat input
+    kind: calculated
+    quantity: power
+    units: MMBtu/h
+    limits: {lo: 0}
+    control_role: MV
+    source: "Computed in the source system from heating medium flow and temperatures."
+
+  - id: reboiler_heating_medium_temperature
+    description: Heating medium temperature entering the reboiler
+    kind: sensor
+    quantity: temperature
+    units: degF
+    control_role: IND
+    required: false
+    source: "Needed for the reboiler approach."
+
+  - id: overhead_impurity
+    description: Heavy key content of the distillate
+    kind: sensor
+    quantity: concentration
+    units: mol%
+    limits: {lo: 0, hi: 100}
+    control_role: IND
+    source: "Analyser value. A mole fraction lies between 0 and 100 percent. The spec is contractual."
+
+  - id: bottoms_impurity
+    description: Light key content of the bottoms
+    kind: sensor
+    quantity: concentration
+    units: mol%
+    limits: {lo: 0, hi: 100}
+    control_role: IND
+    source: "Analyser value. A mole fraction lies between 0 and 100 percent. The spec is contractual."
+
+  - id: refrigerant_temperature
+    description: Refrigerant temperature on the condenser (deethanizer)
+    kind: sensor
+    quantity: temperature
+    units: degF
+    control_role: DV
+    required: false
+    source: "Deethanizer only. A deethanizer at roughly 400 to 450 psig needs refrigerant on the condenser; that pressure range is UNVERIFIED for any asset."
+
+  - id: ambient_temperature
+    description: Ambient air temperature
+    kind: sensor
+    quantity: temperature
+    units: degF
+    control_role: DV
+    required: false
+    source: "Drives air-cooled condenser capacity. Seasonal, so any slow trend over less than a year is confounded with it."
+
+derived:
+  - id: feed_rate_pct
+    expr: "100.0 * feed_flow / design_feed_flow"
+    units: percent
+    description: Feed rate as a percentage of design, the scale-free rate regime
+    source: "Definition."
+
+  - id: reflux_ratio
+    expr: "reflux_flow / distillate_flow"
+    units: ratio
+    description: External reflux ratio
+    source: "Definition."
+
+  - id: separation_factor
+    expr: "((100.0 - overhead_impurity) / overhead_impurity) * ((100.0 - bottoms_impurity) / bottoms_impurity)"
+    units: dimensionless
+    description: Separation factor for the key pair, treating each product as a binary of the two keys
+    source: "Fenske-style separation factor (distillate light/heavy ratio times bottoms heavy/light ratio), binary approximation."
+
+  - id: reboiler_approach
+    expr: "reboiler_heating_medium_temperature - bottoms_temperature"
+    units: degF
+    description: Driving force across the reboiler
+    source: "Definition."
+
+invariants:
+  - id: mass_balance
+    kind: balance
+    expr: "feed_flow == distillate_flow + bottoms_flow"
+    tol: 0.03
+    severity: high
+    source: >
+      Overall balance; check it before reading anything else, because every ratio derived
+      from these flows inherits a meter problem. Volumetric flows ignore mixing shrinkage.
+      The 3 percent tolerance for metering uncertainty is UNVERIFIED.
+
+  - id: overhead_colder_than_bottoms
+    kind: inequality
+    expr: "overhead_temperature < bottoms_temperature"
+    severity: high
+    source: "The light key leaves overhead, so the top of a column runs colder than the bottom. A violation is a tag error."
+
+confounders:
+  - id: feed_rate_change
+    description: Feed rate changed, so dP, duties and impurities moved with it.
+    roles: [feed_flow]
+    test: regime_shift
+    source: "Process reference, Y-grade fractionation"
+
+  - id: feed_composition_shift
+    description: >
+      A feed composition shift moves the temperature profile and both products in the same
+      direction with dP and duties unchanged. It confounds almost every failure mode and is
+      the first thing to exclude.
+    roles: [feed_light_key_frac]
+    test: correlates_with
+    source: "Process reference, Y-grade fractionation"
+
+  - id: pressure_change
+    description: >
+      A pressure change shifts every tray temperature with no composition change. Reading a
+      raw tray temperature as composition across it invents a fractionation problem.
+    roles: [column_pressure]
+    test: step_change
+    source: "Process reference, Y-grade fractionation"
+
+  - id: ambient_change
+    description: Ambient temperature moves condenser capacity and reflux temperature.
+    roles: [ambient_temperature]
+    test: correlates_with
+    source: "Process reference, Y-grade fractionation"
+
+failure_modes:
+  - id: flooding
+    name: Column flooding
+    severity: high
+    onset: hours
+    signature:
+      column_dp: sharp_up
+      overhead_impurity: up
+      bottoms_impurity: up
+    confounders: [feed_rate_change, feed_composition_shift]
+    differentials: [tray_damage]
+    discriminators:
+      - "Both impurities rising together is the flooding tell. A duty problem moves one."
+      - "dP rising faster than proportionally to boilup separates flooding from a rate increase."
+      - "Foaming and a plugged downcomer give a similar picture."
+    verify_in_field:
+      - "Reduce rate or boilup and watch whether dP and both impurities recover."
+    source: "UNVERIFIED: process reference (Y-grade fractionation), pending SME review"
+
+  - id: weeping
+    name: Weeping or dumping at low rate
+    severity: medium
+    onset: hours
+    signature:
+      column_dp: down
+      bottoms_impurity: up
+      overhead_impurity: unchanged
+    confounders: [feed_rate_change]
+    differentials: [tray_damage]
+    discriminators:
+      - "Turndown is normal; the finding is weeping at a rate the column should handle."
+    verify_in_field:
+      - "Compare the rate against the tray turndown limit in the design basis."
+    source: "UNVERIFIED: process reference (Y-grade fractionation), pending SME review"
+
+  - id: tray_damage
+    name: Tray damage
+    severity: high
+    onset: instant
+    signature:
+      column_dp: sharp_up
+      separation_factor: down
+    confounders: [feed_rate_change, pressure_change]
+    differentials: [fouling]
+    discriminators:
+      - "A step that does not recover after the rate returns. Fouling ramps, damage steps."
+      - "The direction of the dP step depends on the damage (debris raises it, dislodged trays can lower it); the up direction here is UNVERIFIED."
+      - "Rule out a dP transmitter recalibration against the instrument change record."
+    verify_in_field:
+      - "Gamma scan the column; inspect at the next turnaround."
+    source: "UNVERIFIED: process reference (Y-grade fractionation), pending SME review"
+
+  - id: fouling
+    name: Fouling or coking
+    severity: medium
+    onset: months
+    signature:
+      column_dp: up
+      reboiler_approach: up
+      reboiler_duty: up
+    confounders: [feed_rate_change, ambient_change, feed_composition_shift]
+    differentials: [tray_damage]
+    discriminators:
+      - "Onset in months and gradual. Rate creep and a shift to heavier feed give a similar picture and must be excluded."
+    verify_in_field:
+      - "Trend dP within a fixed rate band over the run; inspect reboiler tubes at the next opportunity."
+    source: "UNVERIFIED: process reference (Y-grade fractionation), pending SME review"
+
+  - id: reboiler_duty_limitation
+    name: Reboiler duty limitation
+    severity: medium
+    onset: weeks
+    signature:
+      bottoms_impurity: up
+      reboiler_duty: flat
+      reboiler_approach: up
+    confounders: [feed_rate_change, feed_composition_shift]
+    differentials: [fouling]
+    discriminators:
+      - "Whether the utility side or the process side approach degraded separates a heating medium supply problem from fouling."
+    verify_in_field:
+      - "Check heating medium supply temperature and flow, and the control valve position."
+    source: "UNVERIFIED: process reference (Y-grade fractionation), pending SME review"
+
+  - id: condenser_refrigeration_loss
+    name: Deethanizer condenser refrigeration loss
+    severity: high
+    onset: hours
+    signature:
+      overhead_temperature: up
+      refrigerant_temperature: up
+      overhead_impurity: up
+      reflux_flow: down
+    confounders: [ambient_change, feed_rate_change]
+    discriminators:
+      - "Refrigerant temperature rising with the overhead points to the refrigeration system, not to condenser fouling."
+    verify_in_field:
+      - "Check the refrigeration compressor, refrigerant level and condenser pressure."
+    source: "UNVERIFIED: process reference (Y-grade fractionation), pending SME review"
+
+regimes:
+  - id: rate_band
+    by: feed_rate_pct
+    method: bin
+    params: {width: 10, units: percent of design}
+  - id: pressure_band
+    by: column_pressure
+    method: bin
+    params: {width: 10, units: psi}
+
+checks:
+  enabled:
+    - dq_timestamp_regularity
+    - dq_duplicate_series
+    - dq_partial_rows
+    - dq_flatline
+    - dq_zero_order_hold
+    - dq_rail_saturation
+    - dq_missing
+    - phys_range
+    - rel_identity
+    - rel_inequality
+    - stat_regime_drift
+    - stat_changepoint
+    - stat_detector_firing_rate
+    - sme_signature_match
+
+notes: >
+  Draft card generated from the process reference and pending SME review. Not run against
+  plant data. The rate regime bins feed rate at 10 percent of design and the pressure regime
+  bins column pressure at 10 psi; both widths are starting choices, not sourced values.
+
+  Not carried: the invariant that separation improves with reflux ratio. It holds only at
+  constant feed composition and below the flood point, and inverts above flooding. The
+  engine's requires_roles gate can require a composition role to be present but cannot hold
+  composition constant, so the unconditioned invariant would report a flooding column as a
+  tag error. Add it when the engine supports conditional evaluation.
+
+  Pressure-compensated tray temperature needs a column-specific temperature-pressure
+  coefficient, which is an asset fact; supply it as a calculated role if the control system
+  computes it.

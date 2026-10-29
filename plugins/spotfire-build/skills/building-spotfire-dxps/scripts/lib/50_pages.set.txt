@@ -1,0 +1,8 @@
+Page.Visible
+FilterPanel.Visible
+FilterPanel.DockingPlacement
+FilterPanel.PanelState
+FilterPanel.FilteringSchemeReference
+DetailsOnDemandPanel.Visible
+DetailsOnDemandPanel.DockingPlacement
+DetailsOnDemandPanel.PanelState
